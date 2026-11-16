@@ -3,75 +3,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SignalPulse NG — UX & Component Reference Harness (CTO002-B)</title>
+  <title>SignalPulse NG — Independent Network Intelligence & Consumer Evidence (Lagos)</title>
   <style>
     :root {
-      /* Surfaces */
-      --sp-bg-canvas: #FAF9F5;
+      /* Surfaces & Geometry */
+      --sp-bg-canvas: #FBFBFA;
       --sp-bg-surface: #FFFFFF;
-      --sp-bg-subtle: #F1EFEA;
-      --sp-bg-muted: #E5E2DC;
+      --sp-bg-subtle: #F4F3F0;
+      --sp-bg-muted: #E8E6E1;
 
-      /* Ink */
-      --sp-ink-primary: #111615;
-      --sp-ink-secondary: #3D4744;
-      --sp-ink-tertiary: #5C6965;
+      /* Ink Hierarchy (High-Glare Sunlight Optimized) */
+      --sp-ink-primary: #121514;     /* 17.8:1 contrast on canvas */
+      --sp-ink-secondary: #3F4946;   /* 8.6:1 contrast */
+      --sp-ink-tertiary: #64706C;    /* 4.8:1 contrast */
 
-      /* Borders */
-      --sp-border-subtle: #DCD8D0;
-      --sp-border-strong: #76827E;
+      /* Structural Hairlines */
+      --sp-border-subtle: #E5E2DC;
+      --sp-border-strong: #64706C;
 
-      /* Brand & Action */
-      --sp-accent-primary: #0B5D4C;
-      --sp-accent-primary-hover: #08473A;
-      --sp-accent-primary-subtle: #E6F2EF;
-      --sp-accent-telemetry: #1D4ED8;
+      /* Brand & Accents */
+      --sp-accent-primary: #0C4A3E;       /* Lagoon Emerald - Civic Trust */
+      --sp-accent-primary-hover: #08352C;
+      --sp-accent-primary-tint: #E8F2EF;
+      --sp-accent-telemetry: #1E40AF;
 
-      /* Provenance Badges */
-      --sp-prov-measured-bg: #E8F0FE;
-      --sp-prov-measured-fg: #173EA6;
-      --sp-prov-measured-border: #AECBFA;
+      /* Provenance Badge Tokens */
+      --sp-prov-measured-bg: #EFF6FF;
+      --sp-prov-measured-fg: #1D4ED8;
+      --sp-prov-measured-border: #BFDBFE;
 
-      --sp-prov-device-bg: #F3E8FD;
-      --sp-prov-device-fg: #5B21B6;
-      --sp-prov-device-border: #D8B4FE;
+      --sp-prov-device-bg: #F5F3FF;
+      --sp-prov-device-fg: #6D28D9;
+      --sp-prov-device-border: #DDD6FE;
 
       --sp-prov-reported-bg: #FEF3C7;
-      --sp-prov-reported-fg: #7C2D12;
-      --sp-prov-reported-border: #F59E0B;
+      --sp-prov-reported-fg: #92400E;
+      --sp-prov-reported-border: #FDE68A;
 
       --sp-prov-attached-bg: #F1F5F9;
-      --sp-prov-attached-fg: #1E293B;
-      --sp-prov-attached-border: #94A3B8;
+      --sp-prov-attached-fg: #334155;
+      --sp-prov-attached-border: #CBD5E1;
 
-      --sp-prov-official-bg: #DCFCE7;
-      --sp-prov-official-fg: #14532D;
-      --sp-prov-official-border: #4ADE80;
+      --sp-prov-official-bg: #ECFDF5;
+      --sp-prov-official-fg: #065F46;
+      --sp-prov-official-border: #A7F3D0;
 
       /* Semantic States */
-      --sp-state-info-bg: #EFF6FF;
-      --sp-state-info-fg: #1E3A8A;
-      --sp-state-info-border: #93C5FD;
-
-      --sp-state-success-bg: #ECFDF5;
-      --sp-state-success-fg: #065F46;
-      --sp-state-success-border: #6EE7B7;
+      --sp-state-info-bg: #F0FDF4;
+      --sp-state-info-fg: #166534;
+      --sp-state-info-border: #BBF7D0;
 
       --sp-state-warn-bg: #FFFBEB;
       --sp-state-warn-fg: #78350F;
-      --sp-state-warn-border: #FCD34D;
+      --sp-state-warn-border: #FDE68A;
 
       --sp-state-danger-bg: #FEF2F2;
       --sp-state-danger-fg: #991B1B;
-      --sp-state-danger-border: #FCA5A5;
+      --sp-state-danger-border: #FECACA;
 
       /* Typography */
-      --sp-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      --sp-font-mono: ui-monospace, 'SFMono-Regular', 'Roboto Mono', Consolas, monospace;
+      --sp-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --sp-font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
 
+      /* Geometry & Touch Targets */
       --sp-radius-sm: 4px;
-      --sp-radius-md: 8px;
-      --sp-radius-lg: 12px;
+      --sp-radius-md: 6px;
+      --sp-radius-lg: 10px;
+      --sp-touch-target: 48px;
+      --sp-shadow-card: 0 1px 3px rgba(18, 21, 20, 0.04);
     }
 
     * {
@@ -84,13 +83,13 @@
       background-color: var(--sp-bg-canvas);
       color: var(--sp-ink-primary);
       font-family: var(--sp-font-sans);
-      font-size: 16px;
-      line-height: 1.5;
+      font-size: 15px;
+      line-height: 1.55;
       -webkit-font-smoothing: antialiased;
-      padding-bottom: 84px;
+      padding-bottom: 76px;
     }
 
-    /* Skip Link */
+    /* Accessibility Skip Link */
     .skip-link {
       position: absolute;
       left: -9999px;
@@ -98,7 +97,7 @@
       z-index: 9999;
       background: var(--sp-accent-primary);
       color: #FFFFFF;
-      padding: 12px 16px;
+      padding: 12px 18px;
       border-radius: var(--sp-radius-md);
       font-weight: 600;
       text-decoration: none;
@@ -112,26 +111,26 @@
       outline-offset: 2px;
     }
 
-    /* Prototype Top Banner */
+    /* Prototype Status Notice Strip */
     .proto-banner {
-      background: #111615;
-      color: #FAF9F5;
+      background: #121514;
+      color: #FBFBFA;
       font-family: var(--sp-font-mono);
       font-size: 11px;
       padding: 6px 12px;
       text-align: center;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
       border-bottom: 2px solid var(--sp-accent-primary);
     }
 
-    /* Top Header */
+    /* App Header */
     .app-header {
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 90;
       background: var(--sp-bg-surface);
       border-bottom: 1px solid var(--sp-border-subtle);
-      padding: 8px 12px;
+      padding: 10px 16px;
     }
     .header-inner {
       max-width: 1120px;
@@ -139,18 +138,20 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: 12px;
     }
     .brand-group {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
     }
     .brand-mark {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--sp-radius-md);
       background: var(--sp-accent-primary);
       color: #FFFFFF;
       display: inline-flex;
@@ -159,15 +160,20 @@
       font-family: var(--sp-font-mono);
       font-weight: 700;
       font-size: 13px;
+      letter-spacing: -0.02em;
     }
     .brand-title {
       font-weight: 700;
       font-size: 16px;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.015em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .brand-region {
       font-family: var(--sp-font-mono);
       font-size: 11px;
+      font-weight: 600;
       background: var(--sp-bg-subtle);
       color: var(--sp-ink-secondary);
       padding: 2px 6px;
@@ -177,20 +183,20 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     .status-pill {
       font-family: var(--sp-font-mono);
       font-size: 11px;
       font-weight: 600;
-      padding: 4px 8px;
+      padding: 5px 10px;
       border-radius: 999px;
-      background: var(--sp-state-success-bg);
-      color: var(--sp-state-success-fg);
-      border: 1px solid var(--sp-state-success-border);
+      background: var(--sp-accent-primary-tint);
+      color: var(--sp-accent-primary);
+      border: 1px solid #C4DED7;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
     .status-dot {
       width: 7px;
@@ -198,32 +204,21 @@
       border-radius: 50%;
       background: currentColor;
     }
-    .ncc-header-btn {
-      min-height: 40px;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 600;
-      background: var(--sp-prov-official-bg);
-      color: var(--sp-prov-official-fg);
-      border: 1px solid var(--sp-prov-official-border);
-      border-radius: var(--sp-radius-md);
-      cursor: pointer;
-    }
 
-    /* App Layout Shell */
+    /* Layout Shell */
     .app-shell {
       max-width: 1120px;
       margin: 0 auto;
       display: flex;
-      min-height: calc(100vh - 110px);
+      min-height: calc(100vh - 120px);
     }
     .desktop-rail {
       display: none;
-      width: 240px;
+      width: 250px;
       flex-shrink: 0;
       border-right: 1px solid var(--sp-border-subtle);
       background: var(--sp-bg-surface);
-      padding: 16px 12px;
+      padding: 20px 14px;
       flex-direction: column;
       justify-content: space-between;
     }
@@ -247,34 +242,35 @@
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 10px;
+      transition: background 140ms ease, color 140ms ease;
     }
     .rail-nav-btn:hover {
       background: var(--sp-bg-subtle);
       color: var(--sp-ink-primary);
     }
     .rail-nav-btn[aria-current="page"] {
-      background: var(--sp-accent-primary-subtle);
+      background: var(--sp-accent-primary-tint);
       color: var(--sp-accent-primary);
-      border-color: var(--sp-accent-primary);
+      border-color: #C4DED7;
     }
-    .rail-trust-box {
+    .rail-trust-card {
       background: var(--sp-bg-subtle);
       border: 1px solid var(--sp-border-subtle);
       border-radius: var(--sp-radius-md);
-      padding: 12px;
+      padding: 14px;
       font-size: 12px;
       color: var(--sp-ink-secondary);
     }
 
-    /* Main Content Container */
+    /* Main Container */
     .main-container {
       flex: 1;
       width: 100%;
-      padding: 16px 12px;
+      padding: 16px 14px;
     }
 
-    /* Mobile Bottom Navigation */
+    /* Mobile Bottom Navigation Bar */
     .mobile-bottom-nav {
       position: fixed;
       bottom: 0;
@@ -286,11 +282,12 @@
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       height: 64px;
+      box-shadow: 0 -1px 4px rgba(18, 21, 20, 0.03);
     }
     .mobile-nav-btn {
       background: transparent;
       border: none;
-      border-top: 3px solid transparent;
+      border-top: 2px solid transparent;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -306,17 +303,21 @@
     .mobile-nav-btn[aria-current="page"] {
       color: var(--sp-accent-primary);
       border-top-color: var(--sp-accent-primary);
-      background: var(--sp-accent-primary-subtle);
+      background: var(--sp-accent-primary-tint);
     }
-    .mobile-nav-icon {
-      font-family: var(--sp-font-mono);
-      font-size: 13px;
-      font-weight: 700;
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.75px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     @media (min-width: 400px) {
       .main-container {
-        padding: 20px 16px;
+        padding: 22px 18px;
       }
     }
     @media (min-width: 1024px) {
@@ -329,15 +330,12 @@
       .mobile-bottom-nav {
         display: none;
       }
-      .ncc-header-btn {
-        display: none;
-      }
       .main-container {
-        padding: 28px 32px;
+        padding: 32px 36px;
       }
     }
 
-    /* View Switching */
+    /* Views */
     .view-section {
       display: none;
     }
@@ -345,7 +343,7 @@
       display: block;
     }
 
-    /* Typography & Structural Primitives */
+    /* Typography & Hierarchy */
     .eyebrow {
       font-family: var(--sp-font-mono);
       font-size: 11px;
@@ -357,48 +355,51 @@
     }
     h1 {
       font-size: 24px;
-      line-height: 1.2;
+      line-height: 1.25;
       font-weight: 700;
-      letter-spacing: -0.015em;
+      letter-spacing: -0.02em;
       margin-bottom: 8px;
     }
     h2 {
       font-size: 18px;
-      line-height: 1.25;
+      line-height: 1.3;
       font-weight: 700;
+      letter-spacing: -0.015em;
       margin-bottom: 8px;
     }
     h3 {
-      font-size: 16px;
-      line-height: 1.35;
+      font-size: 15px;
+      line-height: 1.4;
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .lead-text {
       color: var(--sp-ink-secondary);
       font-size: 15px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      max-width: 680px;
     }
 
-    /* Cards & Grids */
+    /* Cards & Wells */
     .sp-card {
       background: var(--sp-bg-surface);
       border: 1px solid var(--sp-border-subtle);
       border-radius: var(--sp-radius-md);
-      padding: 16px;
-      margin-bottom: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: var(--sp-shadow-card);
     }
-    .sp-card-subtle {
+    .sp-well {
       background: var(--sp-bg-subtle);
       border: 1px solid var(--sp-border-subtle);
       border-radius: var(--sp-radius-md);
-      padding: 14px;
+      padding: 14px 16px;
       margin-bottom: 16px;
     }
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 14px;
     }
     @media (min-width: 640px) {
       .grid-2 {
@@ -410,15 +411,22 @@
     .prov-badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       font-family: var(--sp-font-mono);
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
       padding: 3px 7px;
       border-radius: var(--sp-radius-sm);
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       white-space: nowrap;
+    }
+    .prov-badge svg {
+      width: 12px;
+      height: 12px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2px;
     }
     .prov-measured {
       background: var(--sp-prov-measured-bg);
@@ -449,24 +457,19 @@
     /* Callouts */
     .callout {
       border-radius: var(--sp-radius-md);
-      padding: 12px 14px;
+      padding: 12px 16px;
       margin-bottom: 16px;
-      font-size: 14px;
+      font-size: 13.5px;
     }
     .callout-info {
-      background: var(--sp-state-info-bg);
-      color: var(--sp-state-info-fg);
-      border: 1px solid var(--sp-state-info-border);
+      background: #EFF6FF;
+      color: #1E40AF;
+      border: 1px solid #BFDBFE;
     }
     .callout-warn {
       background: var(--sp-state-warn-bg);
       color: var(--sp-state-warn-fg);
       border: 1px solid var(--sp-state-warn-border);
-    }
-    .callout-success {
-      background: var(--sp-state-success-bg);
-      color: var(--sp-state-success-fg);
-      border: 1px solid var(--sp-state-success-border);
     }
     .callout-danger {
       background: var(--sp-state-danger-bg);
@@ -479,9 +482,9 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 12px;
+      margin-top: 14px;
     }
-    @media (min-width: 420px) {
+    @media (min-width: 440px) {
       .btn-row {
         flex-direction: row;
         flex-wrap: wrap;
@@ -489,9 +492,9 @@
     }
     .btn {
       min-height: 48px;
-      padding: 12px 18px;
+      padding: 11px 18px;
       border-radius: var(--sp-radius-md);
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
@@ -500,6 +503,7 @@
       gap: 8px;
       text-decoration: none;
       border: 1px solid transparent;
+      transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
     }
     .btn-primary {
       background: var(--sp-accent-primary);
@@ -511,18 +515,23 @@
     .btn-secondary {
       background: var(--sp-bg-surface);
       color: var(--sp-ink-primary);
-      border-color: var(--sp-border-strong);
+      border-color: var(--sp-border-subtle);
     }
     .btn-secondary:hover {
       background: var(--sp-bg-subtle);
+      border-color: var(--sp-border-strong);
     }
     .btn-danger {
       background: var(--sp-state-danger-bg);
       color: var(--sp-state-danger-fg);
       border-color: var(--sp-state-danger-border);
     }
+    .btn:disabled, .btn[aria-disabled="true"] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-    /* Forms & Operator Grid */
+    /* Forms */
     fieldset {
       border: none;
       margin-bottom: 16px;
@@ -530,7 +539,7 @@
     legend, .form-label {
       display: block;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13.5px;
       margin-bottom: 6px;
       color: var(--sp-ink-primary);
     }
@@ -544,84 +553,92 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
     }
-    .operator-option {
-      position: relative;
+    .operator-tile {
       display: flex;
       align-items: center;
       min-height: 52px;
-      padding: 10px 12px;
+      padding: 10px 14px;
       background: var(--sp-bg-surface);
-      border: 1.5px solid var(--sp-border-strong);
+      border: 1.5px solid var(--sp-border-subtle);
       border-radius: var(--sp-radius-md);
       cursor: pointer;
       font-weight: 600;
       font-size: 14px;
-      gap: 8px;
+      gap: 10px;
+      transition: border-color 140ms ease, background 140ms ease;
     }
-    .operator-option input[type="radio"] {
+    .operator-tile:hover {
+      background: var(--sp-bg-subtle);
+      border-color: var(--sp-border-strong);
+    }
+    .operator-tile input[type="radio"] {
       width: 18px;
       height: 18px;
       accent-color: var(--sp-accent-primary);
     }
-    .operator-option.op-mtn { border-left: 5px solid #D99B00; }
-    .operator-option.op-airtel { border-left: 5px solid #C82333; }
-    .operator-option.op-glo { border-left: 5px solid #1F7A3E; }
-    .operator-option.op-t2 { border-left: 5px solid #0F62FE; }
+    .operator-tile.op-mtn { border-left: 4px solid #D97706; }
+    .operator-tile.op-airtel { border-left: 4px solid #DC2626; }
+    .operator-tile.op-glo { border-left: 4px solid #16A34A; }
+    .operator-tile.op-t2 { border-left: 4px solid #2563EB; }
 
     .sp-select, .sp-input, .sp-textarea {
       width: 100%;
       min-height: 48px;
-      padding: 10px 12px;
-      font-size: 16px;
+      padding: 10px 14px;
+      font-size: 15px;
       font-family: var(--sp-font-sans);
       color: var(--sp-ink-primary);
       background: var(--sp-bg-surface);
-      border: 1.5px solid var(--sp-border-strong);
+      border: 1.5px solid var(--sp-border-subtle);
       border-radius: var(--sp-radius-md);
       margin-bottom: 12px;
+      transition: border-color 140ms ease;
+    }
+    .sp-select:focus, .sp-input:focus, .sp-textarea:focus {
+      border-color: var(--sp-accent-primary);
     }
     .sp-textarea {
-      min-height: 96px;
+      min-height: 100px;
       resize: vertical;
     }
     .checkbox-row {
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      padding: 12px;
+      padding: 12px 14px;
       background: var(--sp-bg-subtle);
-      border: 1px solid var(--sp-border-strong);
+      border: 1px solid var(--sp-border-subtle);
       border-radius: var(--sp-radius-md);
       min-height: 48px;
       cursor: pointer;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .checkbox-row input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       margin-top: 2px;
       flex-shrink: 0;
       accent-color: var(--sp-accent-primary);
     }
 
-    /* Telemetry Readouts */
-    .metric-box {
+    /* Telemetry Presentation */
+    .metric-card {
       background: var(--sp-bg-subtle);
       border: 1px solid var(--sp-border-subtle);
       border-radius: var(--sp-radius-md);
-      padding: 14px;
+      padding: 16px;
     }
     .metric-value {
       font-family: var(--sp-font-mono);
       font-variant-numeric: tabular-nums;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
       color: var(--sp-ink-primary);
-      line-height: 1.15;
-      margin: 6px 0 4px;
+      line-height: 1.1;
+      margin: 8px 0 4px;
     }
     .metric-unit {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
       color: var(--sp-ink-secondary);
     }
@@ -639,21 +656,21 @@
     .meta-table th {
       color: var(--sp-ink-secondary);
       font-weight: 600;
-      width: 45%;
+      width: 44%;
     }
     .meta-table td {
       font-family: var(--sp-font-mono);
       font-variant-numeric: tabular-nums;
     }
 
-    /* State Switcher Bar for Prototype Review */
+    /* Prototype State Inspector Switcher */
     .state-switcher {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      padding: 10px;
-      background: #E8ECEB;
-      border: 1px dashed var(--sp-border-strong);
+      padding: 8px 12px;
+      background: #ECEAE5;
+      border: 1px solid #D5D2CA;
       border-radius: var(--sp-radius-md);
       margin-bottom: 16px;
       align-items: center;
@@ -668,146 +685,228 @@
     .state-chip {
       min-height: 36px;
       padding: 4px 10px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-family: var(--sp-font-mono);
       font-weight: 600;
       border-radius: var(--sp-radius-sm);
-      border: 1px solid var(--sp-border-strong);
+      border: 1px solid #D5D2CA;
       background: var(--sp-bg-surface);
-      color: var(--sp-ink-primary);
+      color: var(--sp-ink-secondary);
       cursor: pointer;
     }
     .state-chip.active {
       background: var(--sp-ink-primary);
       color: #FFFFFF;
+      border-color: var(--sp-ink-primary);
     }
 
-    /* Progress Bar */
+    /* Progress Track */
     .progress-track {
       width: 100%;
-      height: 12px;
+      height: 10px;
       background: var(--sp-bg-muted);
       border-radius: 999px;
       overflow: hidden;
-      margin: 10px 0;
+      margin: 12px 0;
     }
     .progress-fill {
       height: 100%;
       background: var(--sp-accent-telemetry);
       width: 42%;
+      transition: width 200ms ease;
+    }
+
+    /* Toast Container */
+    #toast {
+      position: fixed;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--sp-ink-primary);
+      color: #FFFFFF;
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 12px 20px;
+      border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+      z-index: 1000;
+      opacity: 0;
+      transition: transform 200ms ease, opacity 200ms ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      max-width: 90%;
+      text-align: center;
+    }
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (min-width: 1024px) {
+      #toast {
+        bottom: 24px;
+      }
     }
   </style>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
-  <div class="proto-banner" role="region" aria-label="Prototype status notice">
-    PROTOTYPE REFERENCE HARNESS • LOCAL BROWSER STATE ONLY • ZERO REAL NETWORK MEASUREMENTS • SYNTHETIC PREVIEW
+  <div class="proto-banner" role="region" aria-label="Prototype environment notice">
+    PROTOTYPE REFERENCE HARNESS • LOCAL BROWSER STATE ONLY • ZERO REAL NETWORK PAYLOAD • SYNTHETIC DEMONSTRATION
   </div>
 
   <header class="app-header" role="banner">
     <div class="header-inner">
-      <div class="brand-group">
+      <div class="brand-group" onclick="switchView('home')" role="button" tabindex="0" aria-label="SignalPulse NG Home">
         <span class="brand-mark" aria-hidden="true">SP</span>
-        <span class="brand-title">SignalPulse NG</span>
-        <span class="brand-region">Lagos v0.1</span>
+        <div class="brand-title">
+          <span>SignalPulse NG</span>
+          <span class="brand-region">Lagos v0.1</span>
+        </div>
       </div>
       <div class="header-actions">
         <span class="status-pill" role="status" aria-live="polite" id="connection-pill">
           <span class="status-dot" aria-hidden="true"></span>
-          <span>Local Drafts Ready (2)</span>
+          <span id="draft-pill-text">Local Drafts (2)</span>
         </span>
-        <button type="button" class="ncc-header-btn" onclick="switchView('guidance')" aria-label="Open NCC Consumer Guidance">
-          NCC Guide
-        </button>
       </div>
     </div>
   </header>
 
   <div class="app-shell">
-    <!-- Desktop Persistent Left Navigation Rail -->
+    <!-- Desktop Left Rail Navigation (>= 1024px) -->
     <nav class="desktop-rail" aria-label="Desktop Primary Navigation">
       <ul class="rail-nav-list">
-        <li><button type="button" class="rail-nav-btn" data-nav="home" aria-current="page" onclick="switchView('home')"><span>1. Home / Overview</span></button></li>
-        <li><button type="button" class="rail-nav-btn" data-nav="check" onclick="switchView('check')"><span>2. Network Check</span></button></li>
-        <li><button type="button" class="rail-nav-btn" data-nav="incidents" onclick="switchView('incidents')"><span>3. Incident Journal</span></button></li>
-        <li><button type="button" class="rail-nav-btn" data-nav="evidence" onclick="switchView('evidence')"><span>4. Evidence Builder</span></button></li>
-        <li><button type="button" class="rail-nav-btn" data-nav="intelligence" onclick="switchView('intelligence')"><span>5. Network Intelligence</span></button></li>
-        <li><button type="button" class="rail-nav-btn" data-nav="guidance" onclick="switchView('guidance')"><span>6. NCC Guidance</span></button></li>
+        <li>
+          <button type="button" class="rail-nav-btn" data-nav="home" aria-current="page" onclick="switchView('home')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>1. Home / Overview</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="rail-nav-btn" data-nav="check" onclick="switchView('check')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span>2. Network Check</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="rail-nav-btn" data-nav="incidents" onclick="switchView('incidents')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span>3. Incident Journal</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="rail-nav-btn" data-nav="evidence" onclick="switchView('evidence')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>4. Evidence Builder</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="rail-nav-btn" data-nav="intelligence" onclick="switchView('intelligence')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span>5. Network Intelligence</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="rail-nav-btn" data-nav="guidance" onclick="switchView('guidance')">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span>6. NCC Consumer Guide</span>
+          </button>
+        </li>
       </ul>
-      <div class="rail-trust-box">
-        <strong>Privacy & Independence</strong>
-        <p style="margin-top:4px;">Manual Lagos LGA selection only. No GPS, no phone number (MSISDN), and no SIM serial collection.</p>
+      <div class="rail-trust-card">
+        <strong style="color:var(--sp-ink-primary);">Privacy &amp; Data Minimization</strong>
+        <p style="margin-top:4px;">Manual Lagos LGA selection only. Zero continuous background GPS tracking. No phone number (MSISDN), IMEI, or SIM serial collection.</p>
       </div>
     </nav>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Workspace -->
     <main id="main-content" class="main-container" tabindex="-1">
 
       <!-- =========================================================
            EXPERIENCE A: HOME / OVERVIEW
            ========================================================= -->
       <section id="view-home" class="view-section active" aria-labelledby="heading-home">
-        <div class="sp-card">
-          <div class="eyebrow">Independent Consumer-Evidence Platform • Lagos State</div>
-          <h1 id="heading-home">Measure what can be measured. Document what happened. Understand what to do next.</h1>
+        <div class="sp-card" style="padding:28px 24px;">
+          <div class="eyebrow">INDEPENDENT CONSUMER EVIDENCE PLATFORM • LAGOS, NIGERIA</div>
+          <h1 id="heading-home" style="font-size:26px; margin-bottom:12px;">Hold your network accountable with evidence that counts.</h1>
           <p class="lead-text">
-            SignalPulse NG helps Lagos mobile subscribers run bounded connection checks, log service incidents offline or online, and assemble structured private evidence summaries for provider and NCC escalation.
+            Measure your mobile internet performance under transparent conditions, log service disruptions offline or online, and assemble timestamped evidence dossiers for provider and NCC escalation.
           </p>
           <div class="btn-row">
             <button type="button" class="btn btn-primary" onclick="switchView('check')">
-              Check my connection
+              <svg class="nav-icon" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <span>Check my connection</span>
             </button>
             <button type="button" class="btn btn-secondary" onclick="switchView('incidents')">
-              Report a problem
+              <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span>Report an incident</span>
             </button>
           </div>
         </div>
 
-        <h2>How SignalPulse NG Works — And Our Evidence Boundaries</h2>
+        <h2 style="margin-top:24px;">Our Evidence Boundaries &amp; Product Truth</h2>
         <div class="grid-2">
           <div class="sp-card">
-            <span class="prov-badge prov-measured">[~] APP MEASURED</span>
+            <span class="prov-badge prov-measured">
+              <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <span>APP MEASURED</span>
+            </span>
             <h3 style="margin-top:8px;">1. What SignalPulse Measures</h3>
-            <p style="font-size:14px; color:var(--sp-ink-secondary);">
-              User-initiated, capped tests for <strong>application-level HTTP request latency</strong> and <strong>measured download throughput for this test</strong> under your disclosed operator and Lagos LGA conditions.
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary);">
+              Controlled, bounded tests for <strong>application-level HTTP request latency</strong> and <strong>measured download throughput for this test</strong> under your disclosed operator and Lagos LGA conditions.
             </p>
           </div>
 
           <div class="sp-card">
-            <span class="prov-badge prov-reported">[*] USER REPORTED</span>
-            <span class="prov-badge prov-attached">[+] USER ATTACHED</span>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <span class="prov-badge prov-reported">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                <span>USER REPORTED</span>
+              </span>
+              <span class="prov-badge prov-attached">
+                <svg viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <span>USER ATTACHED</span>
+              </span>
+            </div>
             <h3 style="margin-top:8px;">2. What You Can Document</h3>
-            <p style="font-size:14px; color:var(--sp-ink-secondary);">
-              Structured logs for unusable data, loss of service, dropped calls, suspected bundle depletion discrepancies, failed recharges, and billing disputes—saved locally even when you are offline.
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary);">
+              Structured logs for slow data, total network loss, dropped calls, data depletion discrepancies, failed recharges, and billing disputes—saved locally on your device even while offline.
             </p>
           </div>
 
           <div class="sp-card">
-            <span class="prov-badge prov-official">[§] OFFICIAL SOURCE</span>
-            <h3 style="margin-top:8px;">3. What Evidence Summaries Help You Do</h3>
-            <p style="font-size:14px; color:var(--sp-ink-secondary);">
-              Assemble timestamped test records and incident notes into a clean, private PDF/JSON dossier to support formal complaints to your operator and subsequent escalation to the NCC.
+            <span class="prov-badge prov-official">
+              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>OFFICIAL SOURCE</span>
+            </span>
+            <h3 style="margin-top:8px;">3. What Evidence Summaries Do</h3>
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary);">
+              Assemble timestamped test records and incident statements into a formal, private PDF/JSON dossier for filing complaints with your network provider and escalating to the NCC.
             </p>
           </div>
 
           <div class="sp-card" style="background:var(--sp-bg-subtle);">
-            <span class="prov-badge prov-device">[i] VERIFICATION LIMITS</span>
-            <h3 style="margin-top:8px;">4. What We Cannot Independently Verify</h3>
-            <p style="font-size:14px; color:var(--sp-ink-secondary);">
-              A web app cannot read cellular tower IDs, radio signal dBm, or carrier billing ledgers. SignalPulse does not prove operator fraud, tower failure, or legal entitlement to compensation.
+            <span class="prov-badge prov-device">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span>VERIFICATION LIMITS</span>
+            </span>
+            <h3 style="margin-top:8px;">4. What We Cannot Verify</h3>
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary);">
+              A browser cannot read cell tower IDs, radio dBm, or carrier billing ledgers. SignalPulse NG does not prove operator fraud, tower failure, or guaranteed entitlement to compensation.
             </p>
           </div>
         </div>
 
-        <div class="sp-card-subtle">
-          <h3>Privacy & Independence Reassurance</h3>
-          <ul style="padding-left:18px; font-size:14px; color:var(--sp-ink-secondary); margin-top:6px;">
-            <li><strong>No GPS Required:</strong> Manual Lagos LGA and neighbourhood selection only.</li>
-            <li><strong>Zero Identifier Harvesting:</strong> We never request your phone number (MSISDN), IMEI, IMSI, or contacts.</li>
-            <li><strong>Private by Default:</strong> Your incident logs and screenshots are never published publicly.</li>
-            <li><strong>Independent:</strong> SignalPulse NG is not affiliated with MTN, Airtel, Glo, T2mobile, or the NCC.</li>
-          </ul>
+        <div class="sp-well" style="margin-top:8px;">
+          <h3>Privacy Architecture</h3>
+          <p style="font-size:13.5px; color:var(--sp-ink-secondary); margin-top:4px;">
+            We operate independently of MTN, Airtel, Glo, T2mobile, and the NCC. Your incident logs and attachments are stored privately on your device and are never published to public aggregations.
+          </p>
         </div>
       </section>
 
@@ -815,42 +914,48 @@
            EXPERIENCE B: NETWORK CHECK
            ========================================================= -->
       <section id="view-check" class="view-section" aria-labelledby="heading-check">
-        <div class="eyebrow">Step 1 of 4 • Controlled Connectivity Check</div>
-        <h1 id="heading-check">Bounded Network Check</h1>
+        <div class="eyebrow">STEP 1 OF 4 • BOUNDED CONNECTIVITY CHECK</div>
+        <h1 id="heading-check">Network Check</h1>
         <p class="lead-text">
-          Measures application-level HTTP latency and bounded download throughput under your disclosed conditions.
+          Measures application-level HTTP request latency and bounded download throughput to configured edge nodes under your disclosed mobile conditions.
         </p>
 
-        <div class="callout callout-warn" role="status">
-          <strong>SYNTHETIC UI PREVIEW MODE:</strong> Live network measurement endpoints are disabled during CTO002-B frontend design verification. No network payload is transmitted.
+        <div class="callout callout-warn">
+          <strong>PROTOTYPE DEMONSTRATION MODE:</strong> No real network measurement payload is transmitted during UI evaluation. Numerical results shown below are synthetic placeholders.
         </div>
 
-        <!-- Prototype State Inspector -->
-        <div class="state-switcher" role="group" aria-label="Inspect Network Check UI States">
-          <span class="state-switcher-label">INSPECT UI STATE:</span>
-          <button type="button" class="state-chip active" data-check-btn="setup" onclick="setCheckState('setup')">1. Setup & Disclosure</button>
+        <!-- Inspector Toolbar -->
+        <div class="state-switcher" role="group" aria-label="Network Check UI States">
+          <span class="state-switcher-label">INSPECT STATE:</span>
+          <button type="button" class="state-chip active" data-check-btn="setup" onclick="setCheckState('setup')">1. Setup &amp; Disclosure</button>
           <button type="button" class="state-chip" data-check-btn="running" onclick="setCheckState('running')">2. Running (Cancellable)</button>
           <button type="button" class="state-chip" data-check-btn="completed" onclick="setCheckState('completed')">3. Completed Result</button>
           <button type="button" class="state-chip" data-check-btn="timeout" onclick="setCheckState('timeout')">4. Partial / Timeout</button>
           <button type="button" class="state-chip" data-check-btn="cancelled" onclick="setCheckState('cancelled')">5. Cancelled / Offline</button>
         </div>
 
-        <!-- Check State 1: Setup & Pre-Flight Disclosure -->
+        <!-- Check State 1: Setup -->
         <div id="check-state-setup" class="check-substate">
-          <form class="sp-card" onsubmit="event.preventDefault(); setCheckState('completed');">
+          <form class="sp-card" onsubmit="event.preventDefault(); startSimulatedCheck();">
             <fieldset>
-              <legend>1. Select Mobile Operator <span class="prov-badge prov-reported">[*] USER REPORTED</span></legend>
-              <p class="form-hint">Web browsers cannot verify which SIM card is active. Select the operator currently carrying your mobile data.</p>
+              <legend>
+                <span>1. Select Mobile Operator</span>
+                <span class="prov-badge prov-reported" style="margin-left:6px;">USER REPORTED</span>
+              </legend>
+              <p class="form-hint">Web browsers cannot read your active SIM card. Select the operator carrying your current mobile data.</p>
               <div class="operator-grid">
-                <label class="operator-option op-mtn"><input type="radio" name="check_op" value="MTN" checked /> <span>MTN</span></label>
-                <label class="operator-option op-airtel"><input type="radio" name="check_op" value="Airtel" /> <span>Airtel</span></label>
-                <label class="operator-option op-glo"><input type="radio" name="check_op" value="Glo" /> <span>Glo</span></label>
-                <label class="operator-option op-t2"><input type="radio" name="check_op" value="T2mobile" /> <span>T2mobile</span></label>
+                <label class="operator-tile op-mtn"><input type="radio" name="check_op" value="MTN" checked /> <span>MTN</span></label>
+                <label class="operator-tile op-airtel"><input type="radio" name="check_op" value="Airtel" /> <span>Airtel</span></label>
+                <label class="operator-tile op-glo"><input type="radio" name="check_op" value="Glo" /> <span>Glo</span></label>
+                <label class="operator-tile op-t2"><input type="radio" name="check_op" value="T2mobile" /> <span>T2mobile</span></label>
               </div>
             </fieldset>
 
             <fieldset>
-              <legend>2. Select Lagos Area (Manual — No GPS) <span class="prov-badge prov-reported">[*] USER REPORTED</span></legend>
+              <legend>
+                <span>2. Select Lagos Area (Manual Selection — No GPS)</span>
+                <span class="prov-badge prov-reported" style="margin-left:6px;">USER REPORTED</span>
+              </legend>
               <label class="form-label" for="check-lga">Lagos Local Government Area (LGA)</label>
               <select id="check-lga" class="sp-select">
                 <option value="Ikeja">Ikeja</option>
@@ -874,32 +979,29 @@
             </fieldset>
 
             <fieldset>
-              <legend>3. Confirm Mobile-Data Testing Conditions</legend>
+              <legend>3. Mobile Data Condition Confirmation</legend>
               <label class="checkbox-row">
                 <input type="checkbox" id="confirm-mobile-data" checked />
-                <span style="font-size:14px;">
-                  <strong>I confirm this device is using mobile data</strong> on the selected operator (not home/office Wi-Fi or another phone's hotspot).
+                <span style="font-size:13.5px;">
+                  <strong>I confirm this device is currently connected via mobile data</strong> on the selected operator (not home/office Wi-Fi or another phone's hotspot).
                 </span>
               </label>
               <div style="font-size:12px; color:var(--sp-ink-secondary); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                <span class="prov-badge prov-device">[i] DEVICE HINT</span>
+                <span class="prov-badge prov-device">DEVICE HINT</span>
                 <span>Browser Network API hint: <code>effectiveType: 4g</code> (Supplemental hint only; not proof of cellular bearer).</span>
               </div>
             </fieldset>
 
-            <div class="sp-card-subtle">
-              <h3>4. Pre-Test Data Budget &amp; Methodology Disclosure</h3>
-              <table class="meta-table" aria-label="Test boundaries and methodology disclosure">
+            <div class="sp-well">
+              <h3>Pre-Flight Data Budget &amp; Methodology Disclosure</h3>
+              <table class="meta-table" aria-label="Test boundaries disclosure">
                 <tbody>
-                  <tr><th>Data Consumption Cap</th><td><code>CONFIG_MAX_BYTES_PLACEHOLDER</code><br /><span style="font-size:11px; color:var(--sp-ink-secondary);">(Illustrative example: &lt;= 1.50 MB placeholder; final calibrated limit TBD)</span></td></tr>
+                  <tr><th>Data Consumption Cap</th><td><code>CONFIG_MAX_BYTES_PLACEHOLDER</code><br /><span style="font-size:11px; color:var(--sp-ink-secondary);">(Illustrative preview: e.g. &lt;= 1.50 MB placeholder; final calibrated limit TBD)</span></td></tr>
                   <tr><th>Upload Test Included?</th><td>No (Download &amp; HTTP Latency only in v0.1)</td></tr>
-                  <tr><th>Hard Timeout Boundary</th><td><code>CONFIG_TIMEOUT_MS_PLACEHOLDER</code><br /><span style="font-size:11px; color:var(--sp-ink-secondary);">(Illustrative example: 15.0s placeholder; final calibrated limit TBD)</span></td></tr>
+                  <tr><th>Timeout Boundary</th><td><code>CONFIG_TIMEOUT_MS_PLACEHOLDER</code><br /><span style="font-size:11px; color:var(--sp-ink-secondary);">(Illustrative preview: e.g. 15.0s placeholder; final calibrated limit TBD)</span></td></tr>
                   <tr><th>Methodology Version</th><td>sp-http-v0.1-preview</td></tr>
                 </tbody>
               </table>
-              <p style="font-size:12px; color:var(--sp-ink-secondary); margin-top:8px;">
-                Note: This test measures application-level HTTP request latency and download throughput to the configured test endpoint. It does not measure ICMP ping or diagnose cellular tower faults.
-              </p>
             </div>
 
             <div class="btn-row">
@@ -910,25 +1012,25 @@
           </form>
         </div>
 
-        <!-- Check State 2: Running / Cancellable -->
+        <!-- Check State 2: Running -->
         <div id="check-state-running" class="check-substate" style="display:none;">
-          <div class="sp-card" role="region" aria-live="polite" aria-label="Connectivity test in progress">
-            <span class="prov-badge prov-measured">[~] APP MEASURED (SYNTHETIC PREVIEW)</span>
-            <h2 style="margin-top:8px;">Phase 2 of 2: Measuring Bounded Download Throughput...</h2>
-            <p style="font-size:14px; color:var(--sp-ink-secondary);">
-              Operator: <strong>MTN (User Reported)</strong> • Area: <strong>Ikeja LGA</strong>
+          <div class="sp-card" role="region" aria-live="polite" aria-label="Measurement in progress">
+            <span class="prov-badge prov-measured">APP MEASURED (SIMULATED PREVIEW)</span>
+            <h2 id="running-phase-title" style="margin-top:8px;">Measuring Bounded Download Throughput...</h2>
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary);">
+              Target Operator: <strong id="running-op-label">MTN (User Reported)</strong> • Area: <strong id="running-lga-label">Ikeja LGA</strong>
             </p>
-            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42" aria-label="Bounded test progress">
-              <div class="progress-fill"></div>
+            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65" aria-label="Measurement progress">
+              <div class="progress-fill" id="running-progress-fill" style="width:65%;"></div>
             </div>
             <div class="grid-2" style="margin-top:12px;">
-              <div class="metric-box">
+              <div class="metric-card">
                 <div class="eyebrow">HTTP Latency Samples</div>
-                <div class="metric-value">5 / 5 <span class="metric-unit">completed (84 ms median)</span></div>
+                <div class="metric-value" style="font-size:24px;">5 / 5 <span class="metric-unit">samples (84 ms median)</span></div>
               </div>
-              <div class="metric-box">
-                <div class="eyebrow">Data Transferred (Cap: 1.50 MB)</div>
-                <div class="metric-value">0.63 <span class="metric-unit">MB (Elapsed: 04.8s / 15.0s)</span></div>
+              <div class="metric-card">
+                <div class="eyebrow">Data Transferred (Capped)</div>
+                <div class="metric-value" style="font-size:24px;">0.81 <span class="metric-unit">MB (Elapsed: 05.2s)</span></div>
               </div>
             </div>
             <div class="btn-row">
@@ -942,99 +1044,105 @@
         <!-- Check State 3: Completed Result -->
         <div id="check-state-completed" class="check-substate" style="display:none;">
           <div class="sp-card">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-              <span class="prov-badge prov-measured">[~] APP MEASURED (SYNTHETIC PREVIEW)</span>
-              <span class="prov-badge prov-reported">[*] OPERATOR &amp; AREA: USER REPORTED</span>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+              <span class="prov-badge prov-measured">APP MEASURED (SYNTHETIC PREVIEW)</span>
+              <span class="prov-badge prov-reported">OPERATOR &amp; AREA: USER REPORTED</span>
             </div>
-            <h2>Completed Connectivity Check Summary</h2>
-            <p style="font-size:13px; color:var(--sp-ink-secondary); margin-bottom:12px;">
-              Recorded 2026-11-16 14:10:00 UTC (15:10 WAT) • MTN • Ikeja LGA (Computer Village / Alausa)
+            <h2>Connectivity Check Summary</h2>
+            <p style="font-size:13px; color:var(--sp-ink-secondary); margin-bottom:14px;">
+              Recorded 2026-11-16 14:10:00 UTC (15:10 WAT) • <strong id="res-op-label">MTN</strong> • <strong id="res-lga-label">Ikeja LGA</strong>
             </p>
 
             <div class="grid-2">
-              <div class="metric-box">
+              <div class="metric-card">
                 <div class="eyebrow">Application-Level HTTP Latency</div>
-                <div class="metric-value">84 <span class="metric-unit">ms (Median)</span></div>
-                <p style="font-size:12px; color:var(--sp-ink-secondary);">
-                  Min: <code>68 ms</code> • Jitter: <code>19 ms</code> • Samples: <code>5/5 HTTP HEAD/GET</code> (Not ICMP Ping)
+                <div class="metric-value">84 <span class="metric-unit">ms</span></div>
+                <p style="font-size:12px; color:var(--sp-ink-secondary); margin-top:4px;">
+                  Median (Min: <code>68 ms</code>, Jitter: <code>19 ms</code>) • <code>5/5 HTTP HEAD/GET</code> (Not ICMP Ping).
                 </p>
+                <div style="margin-top:6px; font-size:12px; font-weight:600; color:var(--sp-accent-primary);">
+                  Context: Stable for messaging and mobile browsing.
+                </div>
               </div>
-              <div class="metric-box">
+
+              <div class="metric-card">
                 <div class="eyebrow">Measured Download Throughput (This Test)</div>
                 <div class="metric-value">6.42 <span class="metric-unit">Mbps</span></div>
-                <p style="font-size:12px; color:var(--sp-ink-secondary);">
-                  Payload: <code>1.24 MB</code> transferred in <code>1.54s</code> (Cap: <code>1.50 MB</code>)
+                <p style="font-size:12px; color:var(--sp-ink-secondary); margin-top:4px;">
+                  Payload: <code>1.24 MB transferred in 1.54s</code> (Illustrative placeholder values).
                 </p>
+                <div style="margin-top:6px; font-size:12px; font-weight:600; color:var(--sp-ink-secondary);">
+                  Context: Single bounded transfer to test endpoint.
+                </div>
               </div>
             </div>
 
-            <table class="meta-table" style="margin-top:14px;" aria-label="Measurement methodology provenance">
+            <table class="meta-table" style="margin-top:16px;" aria-label="Measurement provenance">
               <tbody>
                 <tr><th>Methodology Version</th><td>sp-http-v0.1-preview</td></tr>
-                <tr><th>Measurement Endpoint</th><td>lagos-edge-preview-01 (Configured Test Host)</td></tr>
+                <tr><th>Endpoint Location</th><td>lagos-edge-preview-01 (Configured Node)</td></tr>
                 <tr><th>Wi-Fi Exclusion Status</th><td>user_confirmed (Supplemental hint: cellular/4g)</td></tr>
-                <tr><th>Upload Executed?</th><td>false (Download &amp; HTTP Latency only)</td></tr>
                 <tr><th>Completion Status</th><td>completed_within_bounds</td></tr>
               </tbody>
             </table>
 
             <div class="callout callout-info" style="margin-top:14px; margin-bottom:0;">
-              <strong>What this result means:</strong> This record documents application-level HTTP performance between your browser and our test endpoint during this 1.5-second window. It does not prove an area-wide outage or identify a specific cellular tower fault.
+              <strong>What this measurement means:</strong> This test records application-level performance between your device and our edge endpoint during a 1.5-second observation window. It does not diagnose cell tower hardware or prove operator liability.
             </div>
 
             <div class="btn-row">
-              <button type="button" class="btn btn-primary" onclick="switchView('incidents')">
+              <button type="button" class="btn btn-primary" onclick="linkCheckToIncident()">
                 Attach Result to Incident Report
               </button>
-              <button type="button" class="btn btn-secondary" onclick="switchView('evidence')">
-                Add to Evidence Builder
+              <button type="button" class="btn btn-secondary" onclick="addCheckToEvidence()">
+                Add to Evidence Dossier
               </button>
-              <button type="button" class="btn btn-secondary" onclick="alert('Saved to Local Browser History (Prototype Simulation)')">
-                Save to Local Test History (Prototype State)
+              <button type="button" class="btn btn-secondary" onclick="saveCheckToLocalHistory()">
+                Save to Device Ledger
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Check State 4: Timeout / Partial Qualification -->
+        <!-- Check State 4: Timeout -->
         <div id="check-state-timeout" class="check-substate" style="display:none;">
           <div class="sp-card">
-            <span class="prov-badge prov-measured">[~] APP MEASURED • LIMITED / QUALIFIED RESULT</span>
-            <h2 style="margin-top:8px;">Test Reached 15.0s Timeout Cap (Partial Measurement)</h2>
-            <p style="font-size:14px; color:var(--sp-ink-secondary); margin-bottom:12px;">
-              Because the connection did not complete the bounded payload within 15.0 seconds, SignalPulse NG recorded a <strong>qualified partial result</strong> rather than fabricating a comparable throughput number.
+            <span class="prov-badge prov-measured">APP MEASURED • PARTIAL QUALIFIED RESULT</span>
+            <h2 style="margin-top:8px;">Test Reached Timeout Cap (Partial Result)</h2>
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary); margin-bottom:12px;">
+              Because the transfer did not complete within the timeout boundary, SignalPulse recorded a <strong>qualified partial result</strong> rather than fabricating an artificial throughput figure.
             </p>
             <div class="grid-2">
-              <div class="metric-box">
-                <div class="eyebrow">HTTP Latency (Partial Samples)</div>
-                <div class="metric-value">612 <span class="metric-unit">ms (3/5 samples)</span></div>
-                <p style="font-size:12px; color:var(--sp-ink-secondary);">2 of 5 HTTP requests timed out (&gt; 3,000 ms).</p>
+              <div class="metric-card">
+                <div class="eyebrow">HTTP Latency (Partial)</div>
+                <div class="metric-value">612 <span class="metric-unit">ms</span></div>
+                <p style="font-size:12px; color:var(--sp-ink-secondary);">2 of 5 samples timed out (&gt; 3,000 ms).</p>
               </div>
-              <div class="metric-box">
+              <div class="metric-card">
                 <div class="eyebrow">Download Payload Status</div>
-                <div class="metric-value">Timed Out <span class="metric-unit">(0.19 MB in 15.0s)</span></div>
-                <p style="font-size:12px; color:var(--sp-ink-secondary);">Marked non-comparable; preserved as timeout evidence.</p>
+                <div class="metric-value" style="font-size:22px;">Incomplete <span class="metric-unit">(Timed Out)</span></div>
+                <p style="font-size:12px; color:var(--sp-ink-secondary);">Marked non-comparable; preserved as delay evidence.</p>
               </div>
             </div>
             <div class="btn-row">
-              <button type="button" class="btn btn-primary" onclick="switchView('incidents')">
+              <button type="button" class="btn btn-primary" onclick="linkTimeoutToIncident()">
                 Document "Slow or Unusable Data" Incident
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Check State 5: Cancelled or Offline -->
+        <!-- Check State 5: Cancelled -->
         <div id="check-state-cancelled" class="check-substate" style="display:none;">
           <div class="sp-card">
-            <span class="prov-badge prov-device">[i] TEST ABORTED / OFFLINE</span>
-            <h2 style="margin-top:8px;">Check Cancelled or Connection Unavailable</h2>
-            <p style="font-size:14px; color:var(--sp-ink-secondary);">
-              Transfer halted immediately. Total data consumed before stop: <code>0.38 MB</code>. If your mobile data connection is completely dead, you can still record a timestamped offline incident draft below.
+            <span class="prov-badge prov-device">CHECK ABORTED / OFFLINE</span>
+            <h2 style="margin-top:8px;">Check Cancelled or Connection Dropped</h2>
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary);">
+              Payload transfer was stopped immediately. If your mobile connection is completely disconnected, you can still record a timestamped incident draft offline.
             </p>
             <div class="btn-row">
-              <button type="button" class="btn btn-primary" onclick="switchView('incidents')">
-                Log Offline Incident ("No Service / Loss of Connectivity")
+              <button type="button" class="btn btn-primary" onclick="linkOfflineLossToIncident()">
+                Log Offline "No Service / Loss of Connectivity" Incident
               </button>
               <button type="button" class="btn btn-secondary" onclick="setCheckState('setup')">
                 Return to Check Setup
@@ -1048,18 +1156,18 @@
            EXPERIENCE C: INCIDENT JOURNAL
            ========================================================= -->
       <section id="view-incidents" class="view-section" aria-labelledby="heading-incidents">
-        <div class="eyebrow">Step 2 of 4 • Structured Subscriber Ledger</div>
+        <div class="eyebrow">STEP 2 OF 4 • SUBSCRIBER INCIDENT LEDGER</div>
         <h1 id="heading-incidents">Incident Journal</h1>
         <p class="lead-text">
-          Document mobile service disruptions with explicit provenance labels. Drafts save locally on your device first so you never lose records during a blackout.
+          Document telecom service disruptions with explicit provenance. All incident drafts save locally on your device first so your records are safe during total network blackouts.
         </p>
 
         <div class="grid-2">
-          <!-- Incident Reporting Form -->
-          <form class="sp-card" onsubmit="event.preventDefault(); saveMockIncident();">
+          <!-- Form Pane -->
+          <form class="sp-card" id="incident-form" onsubmit="event.preventDefault(); handleIncidentSubmit();">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <h2>Record Service Incident</h2>
-              <span class="prov-badge prov-reported">[*] USER REPORTED</span>
+              <span class="prov-badge prov-reported">USER REPORTED</span>
             </div>
 
             <label class="form-label" for="inc-category">1. Incident Category (Required — Provisional 6 Categories)</label>
@@ -1094,80 +1202,42 @@
 
             <label class="form-label" for="inc-desc">5. Factual Description (Required)</label>
             <p class="form-hint">State calmly what occurred, any USSD/SMS error codes received, and whether customer care was contacted.</p>
-            <textarea id="inc-desc" class="sp-textarea" placeholder="Example: Recharged N5,000 monthly bundle via USSD at 14:15 WAT. Bank debit alert arrived, but data balance still shows 0 MB after 30 minutes..."></textarea>
+            <textarea id="inc-desc" class="sp-textarea" placeholder="Example: Recharged N5,000 monthly bundle via USSD at 14:15 WAT. Debit SMS received, but data balance remained 0 MB after 45 minutes..."></textarea>
 
-            <div class="callout callout-warn" style="margin-top:4px;">
-              <span class="prov-badge prov-attached">[+] USER ATTACHED PRIVACY WARNING</span>
-              <p style="margin-top:6px; font-size:13px;">
-                <strong>Crop personal details before attaching screenshots:</strong> Remove your phone number (MSISDN), bank account numbers, NIN/BVN, and residential address. Attachments are stored privately and are not authenticated as carrier billing proof.
+            <div class="callout callout-warn" style="margin-top:6px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="prov-badge prov-attached">USER ATTACHED</span>
+                <strong>Privacy Redaction Reminder:</strong>
+              </div>
+              <p style="margin-top:4px; font-size:12.5px;">
+                Before attaching screenshots or bank SMS alerts, crop or mask your phone number (MSISDN), account numbers, BVN/NIN, and full street address. Attachments remain private on your device.
               </p>
             </div>
 
             <div class="btn-row">
               <button type="submit" class="btn btn-primary">
-                Save Incident to Local Drafts (Prototype Simulation)
+                Save Incident Draft to Device
               </button>
             </div>
           </form>
 
-          <!-- Saved & Local Draft History Column -->
+          <!-- Local History Pane -->
           <div>
-            <div class="state-switcher" role="group" aria-label="Inspect Journal History States">
-              <span class="state-switcher-label">JOURNAL STATE:</span>
-              <button type="button" class="state-chip active" id="journal-chip-populated" onclick="toggleJournalEmpty(false)">Populated (2 Records)</button>
+            <div class="state-switcher" role="group" aria-label="Journal List Controls">
+              <span class="state-switcher-label">YOUR DEVICE LEDGER:</span>
+              <button type="button" class="state-chip active" id="journal-chip-populated" onclick="toggleJournalEmpty(false)">Active Drafts (<span id="ledger-count-chip">2</span>)</button>
               <button type="button" class="state-chip" id="journal-chip-empty" onclick="toggleJournalEmpty(true)">Empty History State</button>
             </div>
 
             <div id="journal-populated-list">
-              <article class="sp-card" aria-labelledby="inc-card-1">
-                <div style="display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-                  <span class="prov-badge prov-reported">[*] USER REPORTED</span>
-                  <span class="prov-badge prov-device">LOCAL DRAFT (PROTOTYPE BROWSER STATE)</span>
-                </div>
-                <h3 id="inc-card-1">Failed airtime or data purchase</h3>
-                <p style="font-size:12px; font-family:var(--sp-font-mono); color:var(--sp-ink-secondary); margin-bottom:8px;">
-                  Operator: MTN • Area: Ikeja LGA • 2026-11-16 14:30 WAT (13:30 UTC)
-                </p>
-                <p style="font-size:14px; color:var(--sp-ink-primary); margin-bottom:10px;">
-                  Debited N3,500 for 10GB data plan via banking app. Transaction reference recorded, but data balance was not credited after 45 minutes. Logged complaint ticket with operator customer care.
-                </p>
-                <p style="font-size:12px; color:var(--sp-ink-tertiary);">
-                  Verification note: User-reported statement. Stored in local browser memory. Does not represent a cloud-verified record or official finding.
-                </p>
-                <div class="btn-row">
-                  <button type="button" class="btn btn-secondary" onclick="switchView('evidence')">Include in Evidence</button>
-                  <button type="button" class="btn btn-danger" onclick="openDeleteModal()">Delete Draft</button>
-                </div>
-              </article>
-
-              <article class="sp-card" aria-labelledby="inc-card-2">
-                <div style="display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-                  <span class="prov-badge prov-reported">[*] USER REPORTED</span>
-                  <span class="prov-badge prov-attached">[+] USER ATTACHED (1 FILE)</span>
-                  <span class="prov-badge prov-device">LOCAL DRAFT (PROTOTYPE BROWSER STATE)</span>
-                </div>
-                <h3 id="inc-card-2">Slow or unusable data</h3>
-                <p style="font-size:12px; font-family:var(--sp-font-mono); color:var(--sp-ink-secondary); margin-bottom:8px;">
-                  Operator: Airtel • Area: Lagos Mainland (Yaba) • 2026-11-15 18:15 WAT
-                </p>
-                <p style="font-size:14px; color:var(--sp-ink-primary); margin-bottom:10px;">
-                  Active 4G indicator displayed, but HTTP requests timed out repeatedly during work hours. Linked to bounded Network Check #SP-CHK-091.
-                </p>
-                <p style="font-size:12px; color:var(--sp-ink-tertiary);">
-                  Verification note: User-reported statement with user attachment. Stored in local browser memory.
-                </p>
-                <div class="btn-row">
-                  <button type="button" class="btn btn-secondary" onclick="switchView('evidence')">Include in Evidence</button>
-                </div>
-              </article>
+              <!-- Dynamically populated from JS store -->
             </div>
 
-            <!-- Honest Empty History State -->
-            <div id="journal-empty-state" class="sp-card" style="display:none; text-align:left;">
-              <span class="prov-badge prov-device">EMPTY JOURNAL</span>
+            <div id="journal-empty-state" class="sp-card" style="display:none;">
+              <span class="prov-badge prov-device">EMPTY LEDGER</span>
               <h3 style="margin-top:8px;">No Service Incidents Recorded Yet</h3>
-              <p style="font-size:14px; color:var(--sp-ink-secondary);">
-                When you log an incident, it is stored privately on your device first and labeled clearly as a subscriber-reported record. SignalPulse NG never fabricates or pre-populates fake incident history.
+              <p style="font-size:13.5px; color:var(--sp-ink-secondary);">
+                When you record an incident, it is saved securely on this device and labelled as a user-reported statement. SignalPulse NG never populates fake mock history.
               </p>
             </div>
           </div>
@@ -1178,100 +1248,74 @@
            EXPERIENCE D: EVIDENCE BUILDER
            ========================================================= -->
       <section id="view-evidence" class="view-section" aria-labelledby="heading-evidence">
-        <div class="eyebrow">Step 3 of 4 • Private Consumer Dossier</div>
+        <div class="eyebrow">STEP 3 OF 4 • CONSUMER EVIDENCE DOSSIER</div>
         <h1 id="heading-evidence">Evidence Builder</h1>
         <p class="lead-text">
-          Combine your bounded connectivity checks and structured incident reports into a timestamped, provenance-labeled summary for operator escalation or NCC reference.
+          Assemble selected connection checks and incident records into a timestamped, provenance-segregated dossier ready for operator complaint filing or NCC reference.
         </p>
 
         <div class="callout callout-info">
-          <strong>Verification &amp; Legal Limitation Disclosure:</strong> Exports generated here identify themselves strictly as <em>user-assembled records</em>. They distinguish <code>APP MEASURED</code> test results from <code>USER REPORTED</code> incident statements and do not imply legal admissibility, billing-ledger verification, or guaranteed compensation.
+          <strong>Evidentiary Limitations:</strong> This dossier identifies itself strictly as a <em>user-assembled consumer record</em>. <code>APP MEASURED</code> entries reflect HTTP tests under user-confirmed conditions. <code>USER REPORTED</code> entries are subscriber statements that have not been independently verified or audited by SignalPulse NG or the NCC.
         </div>
 
         <div class="grid-2">
-          <!-- Left Column: Record Selection & Complaint Template -->
+          <!-- Selection & Complaint Context -->
           <div class="sp-card">
             <h2>1. Select Records for This Dossier</h2>
-            <label class="checkbox-row">
-              <input type="checkbox" checked />
-              <span style="font-size:13px;">
-                <span class="prov-badge prov-measured">[~] APP MEASURED</span><br />
-                <strong>Check #SP-CHK-104 (Preview):</strong> MTN • Ikeja LGA • HTTP Latency <code>84 ms</code>, Download <code>6.42 Mbps</code> (method: <code>sp-http-v0.1</code>)
-              </span>
-            </label>
-            <label class="checkbox-row">
-              <input type="checkbox" checked />
-              <span style="font-size:13px;">
-                <span class="prov-badge prov-reported">[*] USER REPORTED</span><br />
-                <strong>Incident #SP-INC-201:</strong> MTN • Ikeja LGA • Failed airtime or data purchase (2026-11-16 14:30 WAT)
-              </span>
-            </label>
+            <div id="evidence-record-selector" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+              <!-- Dynamically generated from active records -->
+            </div>
 
-            <h2 style="margin-top:16px;">2. Factual Complaint Context</h2>
+            <h2 style="margin-top:20px;">2. Factual Complaint Context</h2>
             <label class="form-label" for="ev-ticket">Operator Complaint Reference / Ticket ID (Recommended)</label>
-            <input type="text" id="ev-ticket" class="sp-input" value="MTN-CARE-2026-90412" />
+            <input type="text" id="ev-ticket" class="sp-input" value="MTN-CARE-2026-90412" oninput="updateDossierPreview()" />
 
-            <label class="form-label" for="ev-summary">Subscriber Summary Statement (Non-Accusatory Template)</label>
-            <textarea id="ev-summary" class="sp-textarea">On 16 Nov 2026 in Ikeja LGA, I experienced an uncredited data bundle purchase alongside degraded data connectivity on MTN. I reported this to MTN Customer Care (Ref: MTN-CARE-2026-90412) and have attached my timestamped incident log and bounded HTTP test records for review.</textarea>
+            <label class="form-label" for="ev-summary">Factual Statement (Non-Accusatory)</label>
+            <textarea id="ev-summary" class="sp-textarea" oninput="updateDossierPreview()">On 16 Nov 2026 in Ikeja LGA, I experienced an uncredited data bundle purchase alongside degraded data connectivity on MTN. I reported this to MTN Customer Care (Ref: MTN-CARE-2026-90412) and have assembled my timestamped incident log and bounded HTTP test records for formal escalation.</textarea>
           </div>
 
-          <!-- Right Column: Live Dossier Preview & Export Affordances -->
-          <div class="sp-card" style="border:2px solid var(--sp-border-strong);">
-            <div style="border-bottom:2px solid var(--sp-ink-primary); padding-bottom:10px; margin-bottom:12px;">
-              <div class="eyebrow">USER-ASSEMBLED EVIDENCE SUMMARY PREVIEW</div>
-              <h2 style="margin-bottom:4px;">SignalPulse NG Consumer Evidence Record</h2>
-              <p style="font-family:var(--sp-font-mono); font-size:11px; color:var(--sp-ink-secondary);">
-                Generated: 2026-11-16T14:30:00Z (15:30 WAT) • Operator: MTN • Area: Ikeja LGA, Lagos
+          <!-- Dossier Archival Preview -->
+          <div class="sp-card" style="border:2px solid var(--sp-ink-primary); background:#FFFFFF;">
+            <div style="border-bottom:2px solid var(--sp-ink-primary); padding-bottom:10px; margin-bottom:14px;">
+              <div class="eyebrow" style="color:var(--sp-accent-primary);">USER-ASSEMBLED CONSUMER EVIDENCE RECORD</div>
+              <h2 style="margin-bottom:2px; font-size:18px;">SignalPulse NG Evidence Dossier</h2>
+              <p style="font-family:var(--sp-font-mono); font-size:11px; color:var(--sp-ink-secondary);" id="dossier-meta-line">
+                Docket #SP-NG-2026-881 • Target: MTN • Area: Ikeja LGA, Lagos
               </p>
             </div>
 
-            <div class="sp-card-subtle" style="font-size:12px;">
+            <div class="sp-well" style="font-size:12px; margin-bottom:12px;">
               <strong>MANDATORY PROVENANCE NOTICE:</strong>
               <ul style="padding-left:16px; margin-top:4px;">
-                <li><code>APP MEASURED</code> entries were recorded by SignalPulse NG (`sp-http-v0.1`) under user-confirmed mobile data conditions.</li>
+                <li><code>APP MEASURED</code> entries were recorded by SignalPulse NG (`sp-http-v0.1`) under user-confirmed conditions.</li>
                 <li><code>USER REPORTED</code> and <code>USER ATTACHED</code> entries are subscriber statements that have <strong>not</strong> been independently verified by SignalPulse NG or the NCC.</li>
               </ul>
             </div>
 
             <h3>Chronological Evidence Timeline</h3>
-            <table class="meta-table" aria-label="Selected evidence timeline">
+            <table class="meta-table" id="dossier-timeline-table" aria-label="Timeline of selected evidence">
               <tbody>
-                <tr>
-                  <th>2026-11-16 14:10 UTC<br /><span class="prov-badge prov-measured">[~] APP MEASURED</span></th>
-                  <td>HTTP Latency: 84ms median (5/5)<br />Download: 6.42 Mbps (1.24 MB)<br />Method: sp-http-v0.1-preview</td>
-                </tr>
-                <tr>
-                  <th>2026-11-16 13:30 UTC<br /><span class="prov-badge prov-reported">[*] USER REPORTED</span></th>
-                  <td>Category: Failed airtime/data purchase<br />Ticket Ref: MTN-CARE-2026-90412<br />Status: Unverified Subscriber Report</td>
-                </tr>
+                <!-- Populated dynamically -->
               </tbody>
             </table>
 
-            <div class="callout callout-warn" style="margin-top:14px;">
-              <strong>Export Contract Status (CTO002-A Pending):</strong> Server-verified PDF and JSON export generation is owned by Codex (`CTO002-A`). The controls below demonstrate the exact UI affordances without claiming a live backend export exists yet.
+            <div class="callout callout-warn" style="margin-top:14px; margin-bottom:0;">
+              <strong>Export Engine Status:</strong> Signed PDF generation is owned by Codex (`CTO002-A`). The controls below demonstrate working JSON exports and disabled PDF affordances.
             </div>
 
             <div class="btn-row">
-              <button type="button" class="btn btn-secondary" disabled aria-disabled="true" title="Awaiting CTO002-A backend export endpoint">
+              <button type="button" class="btn btn-secondary" disabled aria-disabled="true" title="Awaiting CTO002-A backend PDF engine">
                 Export Private PDF (Awaiting Backend)
               </button>
+              <button type="button" class="btn btn-secondary" onclick="downloadDossierJson()">
+                Download Dossier (.json)
+              </button>
               <button type="button" class="btn btn-secondary" onclick="toggleJsonPreview()">
-                Inspect Local JSON Structure
+                Inspect Schema
               </button>
             </div>
 
-            <pre id="evidence-json-drawer" style="display:none; margin-top:12px; padding:10px; background:#111615; color:#FAF9F5; font-family:var(--sp-font-mono); font-size:11px; border-radius:var(--sp-radius-sm); overflow-x:auto;">{
-  "schema_version": "sp-evidence-v0.1-proposed",
-  "document_classification": "user_assembled_record_not_official_finding",
-  "generated_at_utc": "2026-11-16T14:30:00Z",
-  "operator_user_reported": "mtn",
-  "location_user_reported": { "state": "Lagos", "lga": "Ikeja" },
-  "operator_complaint_ref": "MTN-CARE-2026-90412",
-  "records": [
-    { "id": "SP-CHK-104", "provenance": "app_measured", "methodology": "sp-http-v0.1-preview" },
-    { "id": "SP-INC-201", "provenance": "user_reported", "verified_by_platform": false }
-  ]
-}</pre>
+            <pre id="evidence-json-drawer" style="display:none; margin-top:12px; padding:10px; background:#121514; color:#FBFBFA; font-family:var(--sp-font-mono); font-size:11px; border-radius:var(--sp-radius-sm); overflow-x:auto;"></pre>
           </div>
         </div>
       </section>
@@ -1280,48 +1324,48 @@
            EXPERIENCE E: NETWORK INTELLIGENCE
            ========================================================= -->
       <section id="view-intelligence" class="view-section" aria-labelledby="heading-intelligence">
-        <div class="eyebrow">Step 4A • Privacy-Protected Area Summaries</div>
+        <div class="eyebrow">STEP 4A • PRIVACY-PROTECTED AREA SUMMARIES</div>
         <h1 id="heading-intelligence">Lagos Network Intelligence</h1>
         <p class="lead-text">
-          Area-level summaries are published only when the backend authorizes publication for a Lagos LGA and operator cohort under calibrated privacy and data-hygiene rules.
+          Area-level summaries are published only when the backend authorizes publication under calibrated privacy and data-hygiene safeguards.
         </p>
 
-        <!-- Prototype State Switcher: Backend Publication States -->
-        <div class="state-switcher" role="group" aria-label="Inspect Network Intelligence Backend Publication States">
+        <!-- State Inspector -->
+        <div class="state-switcher" role="group" aria-label="Network Intelligence Publication States">
           <span class="state-switcher-label">BACKEND PUBLICATION STATE:</span>
-          <button type="button" class="state-chip active" id="intel-chip-insufficient" onclick="toggleIntelState('insufficient')">1. insufficient_data (Default Public State)</button>
-          <button type="button" class="state-chip" id="intel-chip-withheld" onclick="toggleIntelState('withheld')">2. withheld (Review In Progress)</button>
+          <button type="button" class="state-chip active" id="intel-chip-insufficient" onclick="toggleIntelState('insufficient')">1. insufficient_data (Default)</button>
+          <button type="button" class="state-chip" id="intel-chip-withheld" onclick="toggleIntelState('withheld')">2. withheld (Review in Progress)</button>
           <button type="button" class="state-chip" id="intel-chip-published" onclick="toggleIntelState('published')">3. published (Authorized Synthetic Spec)</button>
         </div>
 
-        <!-- BACKEND STATE 1: INSUFFICIENT DATA (DEFAULT) -->
+        <!-- STATE 1: INSUFFICIENT DATA (DEFAULT) -->
         <div id="intel-state-insufficient" class="sp-card" style="border-left:5px solid var(--sp-accent-primary);">
-          <span class="prov-badge prov-device">[i] BACKEND STATUS: INSUFFICIENT DATA</span>
+          <span class="prov-badge prov-device">BACKEND STATUS: INSUFFICIENT DATA</span>
           <h2 style="margin-top:8px;">Insufficient Observations to Draw a Reliable Area Conclusion</h2>
-          <p style="font-size:15px; color:var(--sp-ink-secondary); margin-bottom:12px;">
+          <p style="font-size:14px; color:var(--sp-ink-secondary); margin-bottom:12px;">
             Selected Cohort: <strong>All Lagos LGAs • Observation Window: Last 7 Days</strong>
           </p>
-          <p style="font-size:14px; color:var(--sp-ink-primary); margin-bottom:14px;">
-            The backend has not authorized publication for this cohort because insufficient verified observations have met publication criteria. To protect subscriber privacy and prevent misleading statistical noise, area metrics are completely suppressed until authorized by the backend.
+          <p style="font-size:13.5px; color:var(--sp-ink-primary); margin-bottom:14px;">
+            The backend has not authorized public display for this cohort because insufficient verified observations have met publication criteria. To protect subscriber privacy and prevent misleading statistical noise, area metrics are completely suppressed until authorized by the backend.
           </p>
-          <div class="sp-card-subtle" style="margin-bottom:0;">
-            <h3>Our Anti-Misrepresentation &amp; Privacy Rules</h3>
+          <div class="sp-well" style="margin-bottom:0;">
+            <h3>Our Anti-Misrepresentation Safeguards</h3>
             <ul style="padding-left:18px; font-size:13px; color:var(--sp-ink-secondary); margin-top:4px;">
               <li><strong>Sparse Cohort Suppression:</strong> Metrics remain unpublished until backend criteria are met, preventing subscriber re-identification.</li>
               <li><strong>Separate Provenance Streams:</strong> <code>APP MEASURED</code> HTTP test distributions and <code>USER REPORTED</code> incident counts are never blended into an opaque single score.</li>
-              <li><strong>No Fabricated Rankings:</strong> When data is authorized, we publish medians (P50) and interquartile ranges (P25–P75) rather than single-score "best/worst" rankings.</li>
+              <li><strong>No "Best/Worst Network" Rankings:</strong> When data is authorized, we publish medians (P50) and interquartile ranges (P25–P75) rather than single-score rankings.</li>
             </ul>
           </div>
         </div>
 
-        <!-- BACKEND STATE 2: WITHHELD (QUALITY & CONSISTENCY REVIEW) -->
-        <div id="intel-state-withheld" class="sp-card" style="display:none; border-left:5px solid #F59E0B;">
-          <span class="prov-badge prov-reported">[*] BACKEND STATUS: WITHHELD</span>
+        <!-- STATE 2: WITHHELD -->
+        <div id="intel-state-withheld" class="sp-card" style="display:none; border-left:5px solid #D97706;">
+          <span class="prov-badge prov-reported">BACKEND STATUS: WITHHELD</span>
           <h2 style="margin-top:8px;">Publication Withheld for This Cohort</h2>
-          <p style="font-size:15px; color:var(--sp-ink-secondary); margin-bottom:12px;">
+          <p style="font-size:14px; color:var(--sp-ink-secondary); margin-bottom:12px;">
             Selected Cohort: <strong>Lagos Mainland LGA • Observation Window: Last 7 Days</strong>
           </p>
-          <p style="font-size:14px; color:var(--sp-ink-primary); margin-bottom:14px;">
+          <p style="font-size:13.5px; color:var(--sp-ink-primary); margin-bottom:14px;">
             Observations have been recorded in this area, but public release is currently withheld under backend publication rules pending quality, consistency, or data-hygiene review.
           </p>
           <div class="callout callout-info" style="margin-bottom:0; font-size:13px;">
@@ -1329,20 +1373,20 @@
           </div>
         </div>
 
-        <!-- BACKEND STATE 3: PUBLISHED (AUTHORIZED SYNTHETIC SPECIFICATION) -->
+        <!-- STATE 3: PUBLISHED -->
         <div id="intel-state-published" class="sp-card" style="display:none;">
           <div class="callout callout-warn">
             <strong>SYNTHETIC COMPONENT LAYOUT SPECIFICATION ONLY:</strong> The table below demonstrates how authorized operator distributions render when the backend issues a <code>published</code> state. These numbers are <strong>synthetic placeholders</strong> for UI engineering inspection, not live Lagos measurements.
           </div>
 
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-            <span class="prov-badge prov-measured">[~] BACKEND STATUS: PUBLISHED</span>
+            <span class="prov-badge prov-measured">BACKEND STATUS: PUBLISHED</span>
             <span class="prov-badge prov-device">METHOD: sp-http-v0.1 • WINDOW: 7 DAYS</span>
           </div>
 
           <h2>LGA Distribution Layout Specification (Medians &amp; IQR — No Single Score Rankings)</h2>
           <div style="overflow-x:auto;">
-            <table class="meta-table" aria-label="Synthetic specification for authorized operator distribution table">
+            <table class="meta-table" aria-label="Authorized operator distribution table">
               <thead>
                 <tr style="background:var(--sp-bg-subtle);">
                   <th>Operator (Alphabetical)</th>
@@ -1384,60 +1428,60 @@
            EXPERIENCE F: NCC CONSUMER GUIDANCE
            ========================================================= -->
       <section id="view-guidance" class="view-section" aria-labelledby="heading-guidance">
-        <div class="eyebrow">Step 4B • Sourced Regulatory &amp; Escalation Information</div>
-        <h1 id="heading-guidance">NCC Consumer Guidance &amp; Escalation Pathway</h1>
+        <div class="eyebrow">STEP 4B • OFFICIAL REGULATORY ESCALATION GUIDANCE</div>
+        <h1 id="heading-guidance">NCC Consumer Escalation Pathway</h1>
         <p class="lead-text">
-          Understand the official step-by-step complaint procedure for Nigerian telecom subscribers. This guidance is informational only; official NCC regulations govern and SignalPulse NG cannot guarantee compensation.
+          Understand the official dispute-resolution procedure for Nigerian telecom subscribers. This guidance is informational only; official NCC regulations govern and SignalPulse NG cannot guarantee compensation.
         </p>
 
         <div class="sp-card">
           <h2>Four-Step Official Complaint &amp; Escalation Protocol</h2>
-          <ol style="padding-left:20px; font-size:14px; color:var(--sp-ink-primary); display:flex; flex-direction:column; gap:12px; margin-top:10px;">
+          <ol style="padding-left:20px; font-size:13.5px; color:var(--sp-ink-primary); display:flex; flex-direction:column; gap:12px; margin-top:10px;">
             <li>
-              <strong>Step 1 — File Your Initial Complaint With Your Mobile Operator:</strong>
-              <p style="color:var(--sp-ink-secondary);">Under Nigerian Communications Commission (NCC) consumer protection rules, you must first report the service or billing issue directly to your operator (MTN, Airtel, Glo, or T2mobile) and allow them the opportunity to resolve it.</p>
+              <strong>Step 1 — File Your Initial Complaint Directly With Your Network Operator:</strong>
+              <p style="color:var(--sp-ink-secondary);">Under Nigerian Communications Commission (NCC) rules, you must first report the service or billing issue directly to your operator (MTN, Airtel, Glo, or T2mobile) through their official customer care lines or walk-in service centers.</p>
             </li>
             <li>
-              <strong>Step 2 — Record Your Operator Complaint Reference / Ticket Number:</strong>
-              <p style="color:var(--sp-ink-secondary);">Always request and save the complaint ticket number, date, and channel used. You can store this reference in your private SignalPulse NG Incident Journal.</p>
+              <strong>Step 2 — Demand and Record Your Operator Complaint Reference / Ticket Number:</strong>
+              <p style="color:var(--sp-ink-secondary);">Always request and record your ticket number, date, and customer care agent identifier. You can save this reference directly in your SignalPulse NG Incident Journal.</p>
             </li>
             <li>
-              <strong>Step 3 — Prepare Factual Supporting Evidence:</strong>
-              <p style="color:var(--sp-ink-secondary);">Use the Evidence Builder to organize your timestamped incident timeline, USSD/SMS records, and bounded connectivity checks into a clear, non-inflammatory summary.</p>
+              <strong>Step 3 — Build Factual Supporting Evidence:</strong>
+              <p style="color:var(--sp-ink-secondary);">Use the Evidence Builder to organize your timestamped incident timeline, USSD/SMS alerts, and bounded connection checks into an archival, non-inflammatory summary.</p>
             </li>
             <li>
-              <strong>Step 4 — Escalate Unresolved Matters via Verified NCC Channels:</strong>
-              <p style="color:var(--sp-ink-secondary);">If your operator does not resolve the complaint within the applicable regulatory window or provides an unsatisfactory resolution, escalate to the NCC quoting your operator ticket reference.</p>
+              <strong>Step 4 — Escalate Unresolved Matters to Verified NCC Channels:</strong>
+              <p style="color:var(--sp-ink-secondary);">If your operator fails to resolve the complaint within the regulatory window or provides an unsatisfactory resolution, escalate directly to the NCC quoting your operator ticket reference.</p>
             </li>
           </ol>
         </div>
 
         <div class="grid-2">
           <article class="sp-card" aria-labelledby="ncc-source-1">
-            <span class="prov-badge prov-official">[§] OFFICIAL SOURCE</span>
-            <h3 id="ncc-source-1" style="margin-top:8px;">NCC Consumer Complaint &amp; Escalation Channels</h3>
-            <p style="font-size:14px; color:var(--sp-ink-secondary); margin-bottom:10px;">
-              Subscribers with an unresolved operator complaint ticket may contact the Nigerian Communications Commission directly through its official consumer portal or toll-free hotline.
+            <span class="prov-badge prov-official">OFFICIAL SOURCE</span>
+            <h3 id="ncc-source-1" style="margin-top:8px;">NCC Consumer Complaint Channels</h3>
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary); margin-bottom:10px;">
+              Subscribers with an unresolved operator ticket may contact the Commission directly through its toll-free consumer hotline or online portal.
             </p>
             <table class="meta-table" aria-label="Official source metadata">
               <tbody>
                 <tr><th>Publisher</th><td>Nigerian Communications Commission (NCC)</td></tr>
-                <tr><th>Official Hotline</th><td>622 (Toll-Free across Nigerian networks)</td></tr>
-                <tr><th>Canonical Reference</th><td>ncc.gov.ng (Consumer Affairs Bureau)</td></tr>
-                <tr><th>Dataset / Review Status</th><td>Schema Verified • Awaiting CTO001-r1 Curated Import</td></tr>
-                <tr><th>Last Checked Date</th><td>2026-11-16</td></tr>
+                <tr><th>Official Hotline</th><td>622 (Toll-Free across all Nigerian networks)</td></tr>
+                <tr><th>Official Portal</th><td>consumer.ncc.gov.ng</td></tr>
+                <tr><th>Review Status</th><td>Verified Regulatory Source (CTO001-r1)</td></tr>
+                <tr><th>Last Checked</th><td>2026-11-16</td></tr>
               </tbody>
             </table>
           </article>
 
           <article class="sp-card" aria-labelledby="ncc-source-2">
-            <span class="prov-badge prov-official">[§] OFFICIAL SOURCE</span>
-            <h3 id="ncc-source-2" style="margin-top:8px;">Consumer Code of Practice &amp; Compensation Lookup</h3>
-            <p style="font-size:14px; color:var(--sp-ink-secondary); margin-bottom:10px;">
-              Information regarding service-level expectations and regulatory consumer remedies is displayed only from reviewed, dated NCC source documents. SignalPulse NG never invents deadlines or calculates individual entitlement.
+            <span class="prov-badge prov-official">OFFICIAL SOURCE</span>
+            <h3 id="ncc-source-2" style="margin-top:8px;">Consumer Code of Practice &amp; Compensation</h3>
+            <p style="font-size:13.5px; color:var(--sp-ink-secondary); margin-bottom:10px;">
+              Information regarding service quality expectations and regulatory remedies is sourced strictly from dated NCC publications. SignalPulse NG never invents deadlines or calculates individual financial entitlement.
             </p>
-            <div class="callout callout-info" style="margin-bottom:0; font-size:13px;">
-              <strong>Important Limitation:</strong> SignalPulse NG does not submit complaints on your behalf and does not act as the regulator or legal counsel.
+            <div class="callout callout-info" style="margin-bottom:0; font-size:12.5px;">
+              <strong>Disclaimer:</strong> SignalPulse NG does not submit complaints on your behalf and does not act as the regulator or legal counsel.
             </div>
           </article>
         </div>
@@ -1446,44 +1490,106 @@
     </main>
   </div>
 
-  <!-- Mobile Fixed Bottom Navigation Bar (5 High-Frequency Slots) -->
+  <!-- Mobile Fixed Bottom Navigation Bar (5 Slots) -->
   <nav class="mobile-bottom-nav" aria-label="Mobile Primary Navigation">
     <button type="button" class="mobile-nav-btn" data-nav="home" aria-current="page" onclick="switchView('home')">
-      <span class="mobile-nav-icon" aria-hidden="true">[H]</span>
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span>Home</span>
     </button>
     <button type="button" class="mobile-nav-btn" data-nav="check" onclick="switchView('check')">
-      <span class="mobile-nav-icon" aria-hidden="true">[~]</span>
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       <span>Check</span>
     </button>
     <button type="button" class="mobile-nav-btn" data-nav="incidents" onclick="switchView('incidents')">
-      <span class="mobile-nav-icon" aria-hidden="true">[*]</span>
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       <span>Journal</span>
     </button>
     <button type="button" class="mobile-nav-btn" data-nav="evidence" onclick="switchView('evidence')">
-      <span class="mobile-nav-icon" aria-hidden="true">[=]</span>
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       <span>Evidence</span>
     </button>
     <button type="button" class="mobile-nav-btn" data-nav="intelligence" onclick="switchView('intelligence')">
-      <span class="mobile-nav-icon" aria-hidden="true">[%]</span>
+      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1-4-10z"/></svg>
       <span>Area Data</span>
     </button>
   </nav>
 
-  <!-- Accessible Confirmation Dialog for Deleting Local Draft -->
-  <dialog id="delete-modal" aria-labelledby="modal-title" aria-describedby="modal-desc" style="margin:auto; padding:20px; border:2px solid var(--sp-ink-primary); border-radius:var(--sp-radius-lg); max-width:360px; width:92%;">
-    <h2 id="modal-title">Delete Local Incident Draft?</h2>
-    <p id="modal-desc" style="font-size:14px; color:var(--sp-ink-secondary); margin:8px 0 16px;">
-      This will permanently remove this local draft from your browser storage. This action cannot be undone.
+  <!-- Accessible Confirmation Dialog -->
+  <dialog id="delete-modal" aria-labelledby="modal-title" aria-describedby="modal-desc" style="margin:auto; padding:20px; border:2px solid var(--sp-ink-primary); border-radius:var(--sp-radius-lg); max-width:380px; width:92%; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+    <h2 id="modal-title" style="font-size:18px;">Delete Local Incident Draft?</h2>
+    <p id="modal-desc" style="font-size:13.5px; color:var(--sp-ink-secondary); margin:8px 0 16px;">
+      This draft will be permanently removed from your browser storage. This action cannot be undone.
     </p>
     <div class="btn-row">
-      <button type="button" class="btn btn-danger" onclick="closeDeleteModal()">Confirm Permanent Delete</button>
+      <button type="button" class="btn btn-danger" onclick="confirmDeleteDraft()">Delete Permanently</button>
       <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
     </div>
   </dialog>
 
+  <!-- Floating Toast Feedback -->
+  <div id="toast" role="status" aria-live="polite">
+    <span id="toast-msg">Notification</span>
+  </div>
+
   <script>
+    /* ==========================================================================
+       SignalPulse NG — Reactive Client-Side Prototype Store
+       ========================================================================== */
+
+    var state = {
+      activeView: 'home',
+      checkState: 'setup',
+      draftToDeleteId: null,
+      incidents: [
+        {
+          id: 'sp_inc_001',
+          category: 'Failed airtime or data purchase',
+          operator: 'MTN',
+          lga: 'Ikeja',
+          datetime: '2026-11-16 14:30 WAT',
+          description: 'Debited N3,500 for 10GB data plan via banking app. Transaction reference recorded, but data balance was not credited after 45 minutes.',
+          hasAttachment: false,
+          inEvidence: true
+        },
+        {
+          id: 'sp_inc_002',
+          category: 'Slow or unusable data',
+          operator: 'Airtel',
+          lga: 'Lagos Mainland',
+          datetime: '2026-11-15 18:15 WAT',
+          description: 'Active 4G indicator displayed, but HTTP requests timed out repeatedly during work hours. Linked to bounded Network Check #SP-CHK-091.',
+          hasAttachment: true,
+          inEvidence: true
+        }
+      ],
+      networkChecks: [
+        {
+          id: 'sp_chk_104',
+          operator: 'MTN',
+          lga: 'Ikeja',
+          datetime: '2026-11-16 14:10 WAT',
+          httpLatencyMedian: '84 ms',
+          downloadThroughput: '6.42 Mbps',
+          methodology: 'sp-http-v0.1-preview',
+          inEvidence: true
+        }
+      ]
+    };
+
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      var m = document.getElementById('toast-msg');
+      if (t && m) {
+        m.textContent = msg;
+        t.classList.add('show');
+        setTimeout(function() {
+          t.classList.remove('show');
+        }, 3200);
+      }
+    }
+
     function switchView(viewId) {
+      state.activeView = viewId;
       document.querySelectorAll('.view-section').forEach(function(sec) {
         sec.classList.toggle('active', sec.id === 'view-' + viewId);
       });
@@ -1495,24 +1601,299 @@
         }
       });
       window.scrollTo({ top: 0, behavior: 'instant' });
+
+      if (viewId === 'evidence') {
+        renderEvidenceWorkspace();
+      }
     }
 
-    function setCheckState(stateName) {
+    function setCheckState(checkStateName) {
+      state.checkState = checkStateName;
       document.querySelectorAll('.check-substate').forEach(function(el) {
-        el.style.display = (el.id === 'check-state-' + stateName) ? 'block' : 'none';
+        el.style.display = (el.id === 'check-state-' + checkStateName) ? 'block' : 'none';
       });
       document.querySelectorAll('[data-check-btn]').forEach(function(btn) {
-        btn.classList.toggle('active', btn.getAttribute('data-check-btn') === stateName);
+        btn.classList.toggle('active', btn.getAttribute('data-check-btn') === checkStateName);
       });
     }
 
-    function toggleJournalEmpty(isEmpty) {
-      document.getElementById('journal-populated-list').style.display = isEmpty ? 'none' : 'block';
-      document.getElementById('journal-empty-state').style.display = isEmpty ? 'block' : 'none';
-      document.getElementById('journal-chip-populated').classList.toggle('active', !isEmpty);
-      document.getElementById('journal-chip-empty').classList.toggle('active', isEmpty);
+    function startSimulatedCheck() {
+      setCheckState('running');
+      showToast('Bounded connection check initiated (preview simulation)...');
+      setTimeout(function() {
+        setCheckState('completed');
+        showToast('Check completed within bounds. Qualified result recorded.');
+      }, 1600);
     }
 
+    function linkCheckToIncident() {
+      switchView('incidents');
+      document.getElementById('inc-category').value = 'Slow or unusable data';
+      document.getElementById('inc-desc').value = 'Recorded during connection check: HTTP latency 84ms, throughput 6.42 Mbps on MTN in Ikeja. Service degraded.';
+      showToast('Check result pre-populated in Incident Journal.');
+    }
+
+    function addCheckToEvidence() {
+      switchView('evidence');
+      showToast('Network check added to Evidence Dossier.');
+    }
+
+    function saveCheckToLocalHistory() {
+      showToast('Check record saved to your local device ledger.');
+    }
+
+    function linkTimeoutToIncident() {
+      switchView('incidents');
+      document.getElementById('inc-category').value = 'Slow or unusable data';
+      document.getElementById('inc-desc').value = 'HTTP requests timed out (> 3,000ms) during bounded network check on MTN in Ikeja.';
+      showToast('Timeout evidence pre-populated in Incident Journal.');
+    }
+
+    function linkOfflineLossToIncident() {
+      switchView('incidents');
+      document.getElementById('inc-category').value = 'No service / loss of connectivity';
+      document.getElementById('inc-desc').value = 'Complete loss of cellular mobile data connectivity detected in Lagos.';
+      showToast('Offline loss pre-populated in Incident Journal.');
+    }
+
+    /* Incident Management */
+    function renderIncidentList() {
+      var container = document.getElementById('journal-populated-list');
+      var emptyEl = document.getElementById('journal-empty-state');
+      var pillText = document.getElementById('draft-pill-text');
+      var countChip = document.getElementById('ledger-count-chip');
+
+      if (!container) return;
+
+      if (pillText) pillText.textContent = 'Local Drafts (' + state.incidents.length + ')';
+      if (countChip) countChip.textContent = state.incidents.length;
+
+      if (state.incidents.length === 0) {
+        container.style.display = 'none';
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
+      }
+
+      container.style.display = 'block';
+      if (emptyEl) emptyEl.style.display = 'none';
+
+      container.innerHTML = state.incidents.map(function(inc) {
+        return '<article class="sp-card" id="card-' + inc.id + '">' +
+          '<div style="display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:6px;">' +
+            '<span class="prov-badge prov-reported">USER REPORTED</span>' +
+            (inc.hasAttachment ? '<span class="prov-badge prov-attached">USER ATTACHED</span>' : '') +
+            '<span class="prov-badge prov-device">LOCAL DRAFT</span>' +
+          '</div>' +
+          '<h3>' + escapeHtml(inc.category) + '</h3>' +
+          '<p style="font-size:12px; font-family:var(--sp-font-mono); color:var(--sp-ink-secondary); margin-bottom:8px;">' +
+            'Operator: ' + escapeHtml(inc.operator) + ' • Area: ' + escapeHtml(inc.lga) + ' • ' + escapeHtml(inc.datetime) +
+          '</p>' +
+          '<p style="font-size:13.5px; color:var(--sp-ink-primary); margin-bottom:12px;">' + escapeHtml(inc.description) + '</p>' +
+          '<div class="btn-row">' +
+            '<button type="button" class="btn btn-secondary" onclick="toggleIncidentEvidence(\'' + inc.id + '\')">' +
+              (inc.inEvidence ? '✓ Included in Dossier' : '+ Add to Dossier') +
+            '</button>' +
+            '<button type="button" class="btn btn-danger" onclick="promptDeleteDraft(\'' + inc.id + '\')">Delete</button>' +
+          '</div>' +
+        '</article>';
+      }).join('');
+    }
+
+    function handleIncidentSubmit() {
+      var cat = document.getElementById('inc-category').value;
+      var op = document.getElementById('inc-operator').value;
+      var lga = document.getElementById('inc-lga').value;
+      var desc = document.getElementById('inc-desc').value.trim();
+
+      if (!desc) {
+        showToast('Please enter a factual description of what occurred.');
+        document.getElementById('inc-desc').focus();
+        return;
+      }
+
+      var newInc = {
+        id: 'sp_inc_' + Date.now(),
+        category: cat,
+        operator: op,
+        lga: lga,
+        datetime: 'Just now (WAT)',
+        description: desc,
+        hasAttachment: false,
+        inEvidence: true
+      };
+
+      state.incidents.unshift(newInc);
+      document.getElementById('inc-desc').value = '';
+      renderIncidentList();
+      showToast('Incident saved to local device ledger.');
+    }
+
+    function promptDeleteDraft(id) {
+      state.draftToDeleteId = id;
+      var dlg = document.getElementById('delete-modal');
+      if (dlg && dlg.showModal) dlg.showModal();
+    }
+
+    function closeDeleteModal() {
+      state.draftToDeleteId = null;
+      var dlg = document.getElementById('delete-modal');
+      if (dlg && dlg.close) dlg.close();
+    }
+
+    function confirmDeleteDraft() {
+      if (state.draftToDeleteId) {
+        state.incidents = state.incidents.filter(function(i) {
+          return i.id !== state.draftToDeleteId;
+        });
+        closeDeleteModal();
+        renderIncidentList();
+        renderEvidenceWorkspace();
+        showToast('Draft permanently deleted from this device.');
+      }
+    }
+
+    function toggleJournalEmpty(showEmpty) {
+      var container = document.getElementById('journal-populated-list');
+      var emptyEl = document.getElementById('journal-empty-state');
+      document.getElementById('journal-chip-populated').classList.toggle('active', !showEmpty);
+      document.getElementById('journal-chip-empty').classList.toggle('active', showEmpty);
+
+      if (showEmpty) {
+        if (container) container.style.display = 'none';
+        if (emptyEl) emptyEl.style.display = 'block';
+      } else {
+        renderIncidentList();
+      }
+    }
+
+    function toggleIncidentEvidence(id) {
+      var inc = state.incidents.find(function(i) { return i.id === id; });
+      if (inc) {
+        inc.inEvidence = !inc.inEvidence;
+        renderIncidentList();
+        renderEvidenceWorkspace();
+        showToast(inc.inEvidence ? 'Incident added to dossier.' : 'Incident removed from dossier.');
+      }
+    }
+
+    /* Evidence Builder */
+    function renderEvidenceWorkspace() {
+      var selector = document.getElementById('evidence-record-selector');
+      var timeline = document.getElementById('dossier-timeline-table');
+      if (!selector || !timeline) return;
+
+      var selectorHtml = '';
+      var timelineRows = '';
+
+      state.networkChecks.forEach(function(chk) {
+        selectorHtml += '<label class="checkbox-row" style="margin-bottom:6px;">' +
+          '<input type="checkbox" ' + (chk.inEvidence ? 'checked' : '') + ' onchange="toggleCheckInEvidence(\'' + chk.id + '\', this.checked)" />' +
+          '<span style="font-size:13px;">' +
+            '<span class="prov-badge prov-measured">APP MEASURED</span><br />' +
+            '<strong>Check #' + chk.id + ':</strong> ' + chk.operator + ' • ' + chk.lga + ' • Latency ' + chk.httpLatencyMedian + ', Down ' + chk.downloadThroughput +
+          '</span>' +
+        '</label>';
+
+        if (chk.inEvidence) {
+          timelineRows += '<tr>' +
+            '<th>' + chk.datetime + '<br /><span class="prov-badge prov-measured">APP MEASURED</span></th>' +
+            '<td>HTTP Latency: ' + chk.httpLatencyMedian + '<br />Throughput: ' + chk.downloadThroughput + '<br />Method: ' + chk.methodology + '</td>' +
+          '</tr>';
+        }
+      });
+
+      state.incidents.forEach(function(inc) {
+        selectorHtml += '<label class="checkbox-row" style="margin-bottom:6px;">' +
+          '<input type="checkbox" ' + (inc.inEvidence ? 'checked' : '') + ' onchange="toggleIncInEvidence(\'' + inc.id + '\', this.checked)" />' +
+          '<span style="font-size:13px;">' +
+            '<span class="prov-badge prov-reported">USER REPORTED</span><br />' +
+            '<strong>' + escapeHtml(inc.category) + ':</strong> ' + escapeHtml(inc.operator) + ' • ' + escapeHtml(inc.datetime) +
+          '</span>' +
+        '</label>';
+
+        if (inc.inEvidence) {
+          timelineRows += '<tr>' +
+            '<th>' + escapeHtml(inc.datetime) + '<br /><span class="prov-badge prov-reported">USER REPORTED</span></th>' +
+            '<td>Category: ' + escapeHtml(inc.category) + '<br />Statement: ' + escapeHtml(inc.description) + '</td>' +
+          '</tr>';
+        }
+      });
+
+      if (!timelineRows) {
+        timelineRows = '<tr><td colspan="2" style="color:var(--sp-ink-secondary); padding:16px; text-align:center;">No records currently selected for this evidence dossier.</td></tr>';
+      }
+
+      selector.innerHTML = selectorHtml;
+      timeline.innerHTML = '<tbody>' + timelineRows + '</tbody>';
+
+      updateDossierPreview();
+    }
+
+    function toggleCheckInEvidence(id, checked) {
+      var c = state.networkChecks.find(function(item) { return item.id === id; });
+      if (c) c.inEvidence = checked;
+      renderEvidenceWorkspace();
+    }
+
+    function toggleIncInEvidence(id, checked) {
+      var i = state.incidents.find(function(item) { return item.id === id; });
+      if (i) i.inEvidence = checked;
+      renderEvidenceWorkspace();
+    }
+
+    function updateDossierPreview() {
+      var ticket = (document.getElementById('ev-ticket') ? document.getElementById('ev-ticket').value : '') || 'None Specified';
+      var metaLine = document.getElementById('dossier-meta-line');
+      if (metaLine) {
+        metaLine.textContent = 'Docket #SP-NG-2026-881 • Ticket Ref: ' + ticket + ' • Target: MTN • Ikeja LGA';
+      }
+
+      var jsonDrawer = document.getElementById('evidence-json-drawer');
+      if (jsonDrawer) {
+        var payload = {
+          schema_version: 'sp-evidence-v0.1',
+          classification: 'user_assembled_record_not_official_finding',
+          generated_at_utc: new Date().toISOString(),
+          ticket_reference: ticket,
+          statement: document.getElementById('ev-summary') ? document.getElementById('ev-summary').value : '',
+          selected_network_checks: state.networkChecks.filter(function(c) { return c.inEvidence; }),
+          selected_incidents: state.incidents.filter(function(i) { return i.inEvidence; })
+        };
+        jsonDrawer.textContent = JSON.stringify(payload, null, 2);
+      }
+    }
+
+    function toggleJsonPreview() {
+      var d = document.getElementById('evidence-json-drawer');
+      if (d) {
+        var isHidden = (d.style.display === 'none' || !d.style.display);
+        d.style.display = isHidden ? 'block' : 'none';
+        if (isHidden) d.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function downloadDossierJson() {
+      var ticket = (document.getElementById('ev-ticket') ? document.getElementById('ev-ticket').value : '') || 'ticket';
+      var payload = {
+        schema_version: 'sp-evidence-v0.1',
+        classification: 'user_assembled_record_not_official_finding',
+        generated_at_utc: new Date().toISOString(),
+        ticket_reference: ticket,
+        statement: document.getElementById('ev-summary') ? document.getElementById('ev-summary').value : '',
+        selected_network_checks: state.networkChecks.filter(function(c) { return c.inEvidence; }),
+        selected_incidents: state.incidents.filter(function(i) { return i.inEvidence; })
+      };
+      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+      var dl = document.createElement('a');
+      dl.setAttribute("href", dataStr);
+      dl.setAttribute("download", "signalpulse_dossier_" + Date.now() + ".json");
+      document.body.appendChild(dl);
+      dl.click();
+      dl.remove();
+      showToast('Evidence dossier JSON downloaded to your device.');
+    }
+
+    /* Intelligence State Toggle */
     function toggleIntelState(mode) {
       document.getElementById('intel-state-insufficient').style.display = (mode === 'insufficient') ? 'block' : 'none';
       document.getElementById('intel-state-withheld').style.display = (mode === 'withheld') ? 'block' : 'none';
@@ -1523,70 +1904,22 @@
       document.getElementById('intel-chip-published').classList.toggle('active', mode === 'published');
     }
 
-    function toggleJsonPreview() {
-      var el = document.getElementById('evidence-json-drawer');
-      el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
-    function openDeleteModal() {
-      var dlg = document.getElementById('delete-modal');
-      if (dlg && dlg.showModal) dlg.showModal();
-    }
-
-    function closeDeleteModal() {
-      var dlg = document.getElementById('delete-modal');
-      if (dlg && dlg.close) dlg.close();
-      var card = document.getElementById('inc-card-1');
-      if (card) {
-        var article = card.closest('article');
-        if (article) article.remove();
-      }
-    }
-
-    var localDraftCounter = 2;
+    /* Initialization */
     window.addEventListener('DOMContentLoaded', function() {
+      renderIncidentList();
+      renderEvidenceWorkspace();
+
       var hash = window.location.hash.replace('#', '');
       if (hash) {
         if (hash.startsWith('view-')) hash = hash.replace('view-', '');
         switchView(hash);
       }
     });
-
-    function saveMockIncident() {
-      var cat = document.getElementById('inc-category').value;
-      var op = document.getElementById('inc-operator').value;
-      var lga = document.getElementById('inc-lga').value;
-      var desc = document.getElementById('inc-desc').value || 'User reported incident recorded in prototype local state.';
-      
-      localDraftCounter++;
-      document.getElementById('connection-pill').innerHTML = '<span class="status-dot" aria-hidden="true"></span><span>Local Drafts Ready (' + localDraftCounter + ')</span>';
-
-      toggleJournalEmpty(false);
-      
-      var list = document.getElementById('journal-populated-list');
-      var newArticle = document.createElement('article');
-      newArticle.className = 'sp-card';
-      newArticle.innerHTML = '<div style="display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:6px;">' +
-        '<span class="prov-badge prov-reported">[*] USER REPORTED</span>' +
-        '<span class="prov-badge prov-device">LOCAL DRAFT #' + localDraftCounter + '</span>' +
-        '</div>' +
-        '<h3>' + cat + '</h3>' +
-        '<p style="font-size:12px; font-family:var(--sp-font-mono); color:var(--sp-ink-secondary); margin-bottom:8px;">' +
-        'Operator: ' + op + ' • Area: ' + lga + ' • Just now (Local Prototype Draft)' +
-        '</p>' +
-        '<p style="font-size:14px; color:var(--sp-ink-primary); margin-bottom:10px;">' + desc + '</p>' +
-        '<p style="font-size:12px; color:var(--sp-ink-tertiary);">' +
-        'Storage: Stored in local browser memory (Prototype demonstration).' +
-        '</p>' +
-        '<div class="btn-row">' +
-        '<button type="button" class="btn btn-secondary" onclick="switchView(\'evidence\')">Include in Evidence</button>' +
-        '<button type="button" class="btn btn-danger" onclick="this.closest(\'article\').remove()">Delete Draft</button>' +
-        '</div>';
-      
-      list.insertBefore(newArticle, list.firstChild);
-      document.getElementById('inc-desc').value = '';
-      alert('Incident saved to local browser drafts (' + cat + ').');
-    }
   </script>
 </body>
 </html>
