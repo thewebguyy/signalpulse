@@ -8,6 +8,7 @@ import {
   useLocalMeasurements,
 } from "@/components/local-store";
 import type { ExportDocument } from "@/contracts/evidence";
+import { exportDocumentSchema } from "@/contracts/evidence";
 import {
   PaperclipIcon,
   DownloadIcon,
@@ -22,7 +23,7 @@ export default function EvidencePage() {
   const [selectedMeasurementIds, setSelectedMeasurementIds] = useState<Set<string>>(new Set());
 
   const [complaintText, setComplaintText] = useState<string>(
-    "I am lodging a formal dispute regarding repeated mobile network service failures experienced in Lagos State. Attached are structured incident entries and application-measured connection telemetry recorded under controlled conditions."
+    "I am lodging a formal consumer dispute regarding repeated service degradation and failure experienced in Lagos State. Attached are structured incident entries and application-level test measurements recorded on my device."
   );
 
   const [toast, setToast] = useState<ToastMessage | null>(null);
@@ -52,14 +53,14 @@ export default function EvidencePage() {
         id: "err-empty",
         type: "warning",
         title: "No Records Selected",
-        message: "Please select at least 1 record to assemble an Evidence Dossier.",
+        message: "Select at least 1 record to assemble an Evidence Dossier.",
       });
       return;
     }
 
     const now = new Date().toISOString();
 
-    const exportDoc: ExportDocument = {
+    const candidateDoc: ExportDocument = {
       export_schema_version: "evidence-0.1",
       generated_at: now,
       timezone: "Africa/Lagos",
@@ -76,14 +77,26 @@ export default function EvidencePage() {
       })),
       assets: [],
       limitations: [
-        "User-assembled evidence dossier generated via SignalPulse NG.",
-        "Measurements reflect application-layer HTTP tests at recorded time and location.",
+        "Subscriber-assembled dispute dossier generated locally via SignalPulse NG.",
+        "Measurements reflect application-layer HTTP tests under recorded test conditions.",
         "User narratives represent subscriber testimony and are not independently verified.",
         "Does not constitute an official NCC finding or carrier liability determination.",
       ],
     };
 
-    const blob = new Blob([JSON.stringify(exportDoc, null, 2)], {
+    // Formally validate using canonical contract schema before export
+    const parseResult = exportDocumentSchema.safeParse(candidateDoc);
+    if (!parseResult.success) {
+      setToast({
+        id: "err-validation",
+        type: "warning",
+        title: "Dossier Validation Failed",
+        message: "The assembled dossier does not meet the schema requirements (e.g. 1 to 20 unique resources).",
+      });
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify(parseResult.data, null, 2)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
@@ -96,44 +109,46 @@ export default function EvidencePage() {
     setToast({
       id: "json-exported",
       type: "success",
-      title: "Evidence Dossier Exported",
-      message: "JSON dossier successfully compiled and downloaded to your device.",
+      title: "Evidence Dossier Downloaded",
+      message: "JSON document validated against canonical export schema and saved to your device.",
     });
   };
 
-  const handlePrintDossier = () => {
+  const handlePrint = () => {
     if (typeof window !== "undefined") {
       window.print();
     }
   };
 
   return (
-    <main id="main" className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
+    <main id="main" className="mx-auto max-w-4xl space-y-8 px-4 sm:px-6 py-8 sm:py-12">
       {/* Title */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#F1F5F9] text-[#334155]">
-            <PaperclipIcon className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight text-[#121514] sm:text-3xl">
-            Evidence Builder
-          </h1>
-          <span className="rounded bg-[#F4F3F0] px-2 py-0.5 text-[11px] font-mono font-semibold text-[#3F4946] border border-[#E5E2DC]">
-            Multi-Source Dossier
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded bg-slate-100 text-slate-800">
+              <PaperclipIcon className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+              Evidence Builder
+            </h1>
+          </div>
+          <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+            Dispute Workspace
           </span>
         </div>
-        <p className="text-sm leading-relaxed text-[#3F4946]">
-          Select private records to assemble a formal, timestamped evidence dossier for operator escalation and NCC dispute resolution.
+        <p className="text-sm leading-relaxed text-slate-600">
+          Assemble your private records into a structured, timestamped evidence dossier to attach when escalating with your provider or the NCC.
         </p>
       </div>
 
-      {/* Selection Control Summary */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#E5E2DC] bg-[#FFFFFF] p-4 shadow-xs">
+      {/* Control Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center gap-2 text-xs">
-          <LockClosedIcon className="h-4 w-4 text-[#0C4A3E]" aria-hidden="true" />
-          <span className="font-semibold text-[#121514]">Selected Records:</span>
-          <span className="font-mono font-bold text-[#0C4A3E]">{totalSelected} / 20</span>
-          <span className="text-[#64706C]">(Maximum 20 items per export schema)</span>
+          <LockClosedIcon className="h-4 w-4 text-[#064E3B]" aria-hidden="true" />
+          <span className="font-semibold text-slate-900">Included Records:</span>
+          <span className="font-mono font-bold text-[#064E3B]">{totalSelected} / 20</span>
+          <span className="text-slate-500">(1 to 20 unique records per dossier)</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -141,42 +156,42 @@ export default function EvidencePage() {
             type="button"
             onClick={handleExportJSON}
             disabled={totalSelected === 0}
-            className="min-h-[40px] rounded-md bg-[#0C4A3E] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#08352C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="min-h-[40px] rounded-md bg-[#064E3B] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#022C22] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
           >
             <DownloadIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Export JSON Dossier</span>
+            <span>Download JSON Dossier</span>
           </button>
 
           <button
             type="button"
-            onClick={handlePrintDossier}
+            onClick={handlePrint}
             disabled={totalSelected === 0}
-            className="min-h-[40px] rounded-md border border-[#64706C]/40 bg-[#FFFFFF] px-3.5 py-1.5 text-xs font-semibold text-[#121514] hover:bg-[#F4F3F0] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="min-h-[40px] rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Print / PDF View
+            Print / Save as PDF
           </button>
         </div>
       </div>
 
-      {/* Record Selector Grid */}
-      <section aria-labelledby="selection-heading" className="space-y-4">
-        <h2 id="selection-heading" className="text-base font-bold text-[#121514]">
+      {/* 1. Record Selection */}
+      <section aria-labelledby="select-title" className="space-y-4">
+        <h2 id="select-title" className="text-base font-bold text-slate-900">
           1. Select Records from Local Ledger
         </h2>
 
         {incidents.length === 0 && measurements.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#E5E2DC] bg-[#FFFFFF] p-8 text-center space-y-2">
-            <p className="text-sm font-semibold text-[#121514]">No local records found.</p>
-            <p className="text-xs text-[#64706C]">
-              Run a <a href="/check" className="text-[#0C4A3E] underline font-semibold">Network Check</a> or log an <a href="/incidents" className="text-[#0C4A3E] underline font-semibold">Incident</a> to begin assembling private evidence.
+          <div className="rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center space-y-1.5">
+            <p className="text-sm font-semibold text-slate-900">No records saved on this device yet.</p>
+            <p className="text-xs text-slate-500">
+              Run a <a href="/check" className="text-[#064E3B] underline font-medium">Network Check</a> or log an <a href="/incidents" className="text-[#064E3B] underline font-medium">Incident</a> to begin assembling evidence.
             </p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Incidents column */}
+            {/* Incidents Column */}
             <div className="space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#64706C] block">
-                Incident Reports ({incidents.length})
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+                Saved Incidents ({incidents.length})
               </span>
               {incidents.map((inc) => {
                 const isChecked = selectedIncidentIds.has(inc.id);
@@ -185,27 +200,27 @@ export default function EvidencePage() {
                     key={inc.id}
                     className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-all ${
                       isChecked
-                        ? "border-[#0C4A3E] bg-[#E8F2EF]/60 shadow-xs"
-                        : "border-[#E5E2DC] bg-[#FFFFFF] hover:border-[#64706C]"
+                        ? "border-[#064E3B] bg-emerald-50/40 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => toggleIncident(inc.id)}
-                      className="mt-1 h-4 w-4 rounded border-[#64706C] text-[#0C4A3E] focus:ring-[#0C4A3E]"
+                      className="mt-1 h-4 w-4 rounded border-slate-300 text-[#064E3B] focus:ring-[#064E3B]"
                     />
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="font-bold text-xs uppercase text-[#121514]">
+                        <span className="font-bold text-xs uppercase text-slate-900">
                           {inc.fields.operator} · {inc.fields.category.replace(/_/g, " ")}
                         </span>
                         <ProvenanceBadge provenance={inc.provenance} />
                       </div>
-                      <p className="text-xs text-[#3F4946] line-clamp-2">
+                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                         {inc.fields.narrative}
                       </p>
-                      <span className="text-[10px] font-mono text-[#64706C] block">
+                      <span className="text-[10px] font-mono text-slate-400 block">
                         {new Date(inc.fields.occurred_at).toLocaleDateString("en-NG")}
                       </span>
                     </div>
@@ -214,10 +229,10 @@ export default function EvidencePage() {
               })}
             </div>
 
-            {/* Measurements column */}
+            {/* Measurements Column */}
             <div className="space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#64706C] block">
-                Network Check Telemetry ({measurements.length})
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+                Test Telemetry ({measurements.length})
               </span>
               {measurements.map((meas) => {
                 const isChecked = selectedMeasurementIds.has(meas.id);
@@ -226,28 +241,28 @@ export default function EvidencePage() {
                     key={meas.id}
                     className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-all ${
                       isChecked
-                        ? "border-[#0C4A3E] bg-[#E8F2EF]/60 shadow-xs"
-                        : "border-[#E5E2DC] bg-[#FFFFFF] hover:border-[#64706C]"
+                        ? "border-[#064E3B] bg-emerald-50/40 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => toggleMeasurement(meas.id)}
-                      className="mt-1 h-4 w-4 rounded border-[#64706C] text-[#0C4A3E] focus:ring-[#0C4A3E]"
+                      className="mt-1 h-4 w-4 rounded border-slate-300 text-[#064E3B] focus:ring-[#064E3B]"
                     />
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="font-bold text-xs uppercase text-[#121514]">
+                        <span className="font-bold text-xs uppercase text-slate-900">
                           {meas.summary.context.operator} · HTTP Check
                         </span>
                         <ProvenanceBadge provenance="app_measured" />
                       </div>
-                      <div className="flex items-center gap-3 text-xs font-mono text-[#121514]">
+                      <div className="flex items-center gap-3 text-xs font-mono text-slate-900">
                         <span>Latency: <strong>{meas.summary.latency.value ?? "—"} ms</strong></span>
                         <span>Download: <strong>{meas.summary.download.value ?? "—"} Mbps</strong></span>
                       </div>
-                      <span className="text-[10px] font-mono text-[#64706C] block">
+                      <span className="text-[10px] font-mono text-slate-400 block">
                         {new Date(meas.created_at).toLocaleDateString("en-NG")} · {meas.summary.corroboration}
                       </span>
                     </div>
@@ -259,84 +274,91 @@ export default function EvidencePage() {
         )}
       </section>
 
-      {/* Factual Complaint Statement */}
-      <section aria-labelledby="statement-heading" className="rounded-lg border border-[#E5E2DC] bg-[#FFFFFF] p-5 shadow-xs space-y-3">
-        <h2 id="statement-heading" className="text-base font-bold text-[#121514]">
-          2. Factual Complaint Summary
+      {/* 2. Formal Complaint Statement */}
+      <section aria-labelledby="statement-title" className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-3">
+        <h2 id="statement-title" className="text-base font-bold text-slate-900">
+          2. Consumer Statement
         </h2>
-        <p className="text-xs text-[#64706C]">
-          Customize the overarching statement that accompanies your dispute dossier. Keep it factual and concise.
+        <p className="text-xs text-slate-500">
+          State clearly what resolution you are requesting (e.g. airtime refund, data bundle restoration, or service investigation).
         </p>
         <textarea
           rows={3}
           value={complaintText}
           onChange={(e) => setComplaintText(e.target.value)}
-          className="w-full rounded-md border border-[#64706C]/40 bg-[#FFFFFF] p-3 text-xs text-[#121514] shadow-xs focus:border-[#0C4A3E] focus:ring-1 focus:ring-[#0C4A3E]"
+          className="w-full rounded-md border border-slate-300 bg-white p-3 text-xs text-slate-900 shadow-xs focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]"
         />
       </section>
 
-      {/* Dossier Preview Card (Styled for Screen & Print) */}
-      <section aria-labelledby="preview-heading" className="rounded-xl border border-[#121514] bg-[#FFFFFF] p-6 shadow-md space-y-6">
-        <div className="border-b-2 border-[#121514] pb-4 flex flex-wrap items-center justify-between gap-2">
+      {/* 3. Formal Dossier Preview (Print-Optimized) */}
+      <section aria-labelledby="preview-title" className="rounded-xl border border-slate-300 bg-white p-6 sm:p-8 shadow-sm space-y-6 print-expand">
+        <div className="border-b-2 border-slate-900 pb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="font-mono text-xs uppercase tracking-widest text-[#64706C]">
-              Private Consumer Evidence Dossier
-            </span>
-            <h2 id="preview-heading" className="text-2xl font-bold tracking-tight text-[#121514]">
+            <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500">
+              Consumer Dispute Docket · Private Record
+            </div>
+            <h2 id="preview-title" className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5">
               SignalPulse Evidence Summary
             </h2>
           </div>
-          <div className="text-right text-xs">
-            <span className="font-mono block text-[#121514]">Schema: evidence-0.1</span>
-            <span className="text-[#64706C]">Timezone: Africa/Lagos</span>
+          <div className="text-xs text-right font-mono text-slate-600">
+            <div>Schema: evidence-0.1</div>
+            <div>Timezone: Africa/Lagos</div>
           </div>
         </div>
 
-        {/* Narrative Statement */}
-        <div className="rounded bg-[#F4F3F0] p-4 text-xs leading-relaxed text-[#121514]">
-          <span className="font-bold block mb-1">Subscriber Statement:</span>
+        {/* Statement */}
+        <div className="rounded-md bg-slate-50 p-4 text-xs leading-relaxed text-slate-800 border border-slate-200">
+          <span className="font-bold text-slate-900 block mb-1">Subscriber Statement:</span>
           {complaintText}
         </div>
 
-        {/* Attached Records Table */}
+        {/* Chronological Record List */}
         <div className="space-y-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#121514] block">
-            Compiled Evidentiary Records ({totalSelected})
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-900 block">
+            Compiled Evidence Entries ({totalSelected})
           </span>
 
-          <div className="divide-y divide-[#E5E2DC] border border-[#E5E2DC] rounded-md overflow-hidden text-xs">
+          <div className="divide-y divide-slate-200 border border-slate-200 rounded-md overflow-hidden text-xs">
             {totalSelected === 0 ? (
-              <div className="p-4 text-center text-[#64706C]">No records currently included in this dossier.</div>
+              <div className="p-4 text-center text-slate-500">
+                No entries selected above. Check the items to include them in this formal summary.
+              </div>
             ) : (
               <>
                 {incidents.filter((i) => selectedIncidentIds.has(i.id)).map((inc) => (
-                  <div key={inc.id} className="p-3 bg-[#FFFFFF] space-y-1">
+                  <div key={inc.id} className="p-3.5 bg-white space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-[#121514]">
-                        [INCIDENT] {inc.fields.operator.toUpperCase()} · {inc.fields.category}
+                      <span className="font-bold text-slate-900">
+                        [INCIDENT] {inc.fields.operator.toUpperCase()} · {inc.fields.category.replace(/_/g, " ")}
                       </span>
                       <ProvenanceBadge provenance={inc.provenance} />
                     </div>
-                    <p className="text-[#3F4946]">{inc.fields.narrative}</p>
-                    {inc.fields.complaint_reference && (
-                      <span className="text-[11px] font-mono text-[#0C4A3E]">
-                        Operator Ticket Ref: {inc.fields.complaint_reference}
-                      </span>
-                    )}
+                    <p className="text-slate-700">{inc.fields.narrative}</p>
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-500 pt-0.5">
+                      <span>Occurred: {new Date(inc.fields.occurred_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}</span>
+                      {inc.fields.complaint_reference && (
+                        <span className="text-[#064E3B] font-semibold">
+                          Provider Ticket: {inc.fields.complaint_reference}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
 
                 {measurements.filter((m) => selectedMeasurementIds.has(m.id)).map((meas) => (
-                  <div key={meas.id} className="p-3 bg-[#FBFBFA] space-y-1">
+                  <div key={meas.id} className="p-3.5 bg-slate-50 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-[#121514]">
-                        [CHECK] {meas.summary.context.operator.toUpperCase()} · Latency {meas.summary.latency.value}ms · Down {meas.summary.download.value}Mbps
+                      <span className="font-bold text-slate-900">
+                        [TEST] {meas.summary.context.operator.toUpperCase()} · Latency {meas.summary.latency.value}ms · Download {meas.summary.download.value}Mbps
                       </span>
                       <ProvenanceBadge provenance="app_measured" />
                     </div>
-                    <span className="text-[11px] font-mono text-[#64706C] block">
-                      Method: {meas.summary.method_version} · Status: {meas.summary.state} · Corroboration: {meas.summary.corroboration}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-500">
+                      <span>Observed: {new Date(meas.created_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}</span>
+                      <span>Method: {meas.summary.method_version}</span>
+                      <span>Corroboration: {meas.summary.corroboration}</span>
+                    </div>
                   </div>
                 ))}
               </>
@@ -344,13 +366,13 @@ export default function EvidencePage() {
           </div>
         </div>
 
-        {/* Disclaimers & Limitations */}
-        <div className="border-t border-[#E5E2DC] pt-4 text-[11px] leading-relaxed text-[#64706C] space-y-1">
-          <p className="font-semibold text-[#121514]">Evidentiary Notice & Disclaimers:</p>
+        {/* Limitations & Legal Disclosures */}
+        <div className="border-t border-slate-200 pt-4 text-[11px] leading-relaxed text-slate-500 space-y-1">
+          <p className="font-semibold text-slate-900">Evidentiary Limitations & Notice:</p>
           <ul className="list-disc pl-4 space-y-0.5">
-            <li>This dossier is compiled by the subscriber using SignalPulse NG. It is not an official audit or telecommunications billing ledger.</li>
-            <li>HTTP checks measure application-layer performance at test time. Unusable internet claims reflect subscriber observations.</li>
-            <li>Official escalations require a valid telco dispute reference. See NCC Consumer Guidance for formal escalation.</li>
+            <li>Assembled by the subscriber using SignalPulse NG. Not an official telecommunications billing ledger or carrier audit.</li>
+            <li>HTTP test results record application-level performance at test time. User reports reflect subscriber testimony.</li>
+            <li>For formal escalation, submit this dossier with your provider ticket reference to NCC Consumer Affairs via Toll-Free 622.</li>
           </ul>
         </div>
       </section>

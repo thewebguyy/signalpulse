@@ -31,6 +31,7 @@ export default function IncidentsPage() {
   const [complaintRef, setComplaintRef] = useState<string>("");
   const [complaintContactedAt, setComplaintContactedAt] = useState<string>("");
 
+  const [editingId, setEditingId] = useState<string | null>(null);
   const incidents = useLocalIncidents();
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -41,7 +42,7 @@ export default function IncidentsPage() {
       setToast({
         id: "err-narrative",
         type: "warning",
-        title: "Narrative Required",
+        title: "Description Required",
         message: "Please describe what occurred in factual terms.",
       });
       return;
@@ -50,16 +51,16 @@ export default function IncidentsPage() {
     setIsSubmitting(true);
 
     const now = new Date().toISOString();
-    const fakeId = `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, "0")}` as const;
-    const fakeRecordId = `00000000-0000-4000-8000-${(Date.now() + 1).toString(16).padStart(12, "0")}` as const;
+    const targetId = editingId ?? (`00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, "0")}` as const);
+    const targetRecordId = `00000000-0000-4000-8000-${(Date.now() + 1).toString(16).padStart(12, "0")}` as const;
 
     const formattedOccurred = occurredAt ? new Date(occurredAt).toISOString() : now;
 
-    const newIncident: Incident = {
-      id: fakeId,
-      client_record_id: fakeRecordId,
+    const record: Incident = {
+      id: targetId,
+      client_record_id: targetRecordId,
       provenance: "user_reported",
-      revision: 1,
+      revision: editingId ? 2 : 1,
       fields: {
         operator,
         area_id: areaId || null,
@@ -74,64 +75,94 @@ export default function IncidentsPage() {
       expires_at: new Date(Date.now() + 365 * 86400_000).toISOString(),
     };
 
-    saveLocalIncident(newIncident);
+    saveLocalIncident(record);
     setNarrative("");
     setComplaintRef("");
     setComplaintContactedAt("");
+    setEditingId(null);
     setIsSubmitting(false);
 
     setToast({
       id: "saved-incident",
       type: "success",
-      title: "Incident Saved Locally",
-      message: "Recorded to your private browser ledger. Ready for inclusion in an Evidence Dossier.",
+      title: editingId ? "Incident Updated" : "Incident Saved to Device",
+      message: "Stored locally in browser storage. Ready for your private Evidence Dossier.",
     });
+  };
+
+  const handleEdit = (item: Incident) => {
+    setEditingId(item.id);
+    setOperator(item.fields.operator);
+    setAreaId(item.fields.area_id ?? "ikeja");
+    setCategory(item.fields.category);
+    setNarrative(item.fields.narrative);
+    setComplaintRef(item.fields.complaint_reference ?? "");
+    setComplaintContactedAt(item.fields.complaint_contacted_at ? item.fields.complaint_contacted_at.slice(0, 10) : "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setNarrative("");
+    setComplaintRef("");
+    setComplaintContactedAt("");
   };
 
   const handleDelete = (id: string) => {
     deleteLocalIncident(id);
+    if (editingId === id) setEditingId(null);
     setToast({
       id: "deleted-incident",
       type: "info",
-      title: "Draft Deleted",
-      message: "The record was removed from this device's local storage.",
+      title: "Record Deleted",
+      message: "The incident was permanently removed from local browser storage.",
     });
   };
 
   return (
-    <main id="main" className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
-      {/* Page Title */}
+    <main id="main" className="mx-auto max-w-4xl space-y-8 px-4 sm:px-6 py-8 sm:py-12">
+      {/* Title */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#FEF3C7] text-[#92400E]">
-            <DocketPenIcon className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight text-[#121514] sm:text-3xl">
-            Incident Journal
-          </h1>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded bg-amber-100 text-amber-900">
+              <DocketPenIcon className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+              Incident Journal
+            </h1>
+          </div>
           <ProvenanceBadge provenance="user_reported" />
         </div>
-        <p className="text-sm leading-relaxed text-[#3F4946]">
-          Document telecom service incidents in a structured, timestamped format. Every entry is preserved privately on your device.
+        <p className="text-sm leading-relaxed text-slate-600">
+          Record mobile network service failures in a structured, timestamped format. Preserved locally on this device.
         </p>
       </div>
 
-      {/* Local-Only Disclosure Banner */}
-      <div className="rounded-lg border border-[#E5E2DC] bg-[#F4F3F0] p-4 text-xs text-[#3F4946] flex items-start gap-2.5">
-        <LockClosedIcon className="h-4 w-4 text-[#0C4A3E] shrink-0 mt-0.5" aria-hidden="true" />
+      {/* Storage Truth Notice */}
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 flex items-start gap-2.5">
+        <LockClosedIcon className="h-4 w-4 text-[#064E3B] shrink-0 mt-0.5" aria-hidden="true" />
         <div>
-          <strong className="text-[#121514]">Private Device Storage: </strong>
-          Entries are saved in your browser&apos;s local storage. They are never sent to external servers or published publicly without your explicit grant.
+          <strong className="text-slate-900 font-semibold">Local Browser Storage Only: </strong>
+          Your entries are saved in this browser&apos;s local storage. They are never automatically uploaded to any server or published publicly without your explicit choice.
         </div>
       </div>
 
       {/* Structured Incident Form */}
-      <form onSubmit={handleSaveIncident} className="rounded-lg border border-[#E5E2DC] bg-[#FFFFFF] p-6 shadow-xs space-y-6">
-        <div className="flex items-center justify-between border-b border-[#E5E2DC] pb-4">
-          <h2 className="text-base font-bold text-[#121514]">
-            Log a Structured Service Failure
+      <form onSubmit={handleSaveIncident} className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <h2 className="text-base font-bold text-slate-900">
+            {editingId ? "Edit Saved Incident" : "Log a Service Failure"}
           </h2>
-          <span className="text-xs font-mono text-[#64706C]">6 Canonical Categories</span>
+          {editingId && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="text-xs text-slate-500 hover:text-slate-900 font-semibold"
+            >
+              Cancel Edit
+            </button>
+          )}
         </div>
 
         {/* 1. Operator Selection */}
@@ -142,35 +173,33 @@ export default function IncidentsPage() {
 
         {/* 3. Category Selection Grid */}
         <fieldset className="space-y-2 border-0 p-0 m-0">
-          <legend className="text-sm font-semibold text-[#121514]">
-            Incident Category (Select one)
+          <legend className="text-sm font-semibold text-slate-900">
+            Category of Service Failure
           </legend>
-          <div className="grid gap-2.5 sm:grid-cols-2 pt-1">
+          <div className="grid gap-2 sm:grid-cols-2 pt-1">
             {INCIDENT_CATEGORIES.map((cat) => {
               const isSelected = category === cat.code;
               return (
                 <label
                   key={cat.code}
-                  className={`flex cursor-pointer flex-col rounded-md border p-3 transition-all ${
+                  className={`flex cursor-pointer flex-col rounded-lg border p-3.5 transition-all ${
                     isSelected
-                      ? "border-[#0C4A3E] bg-[#E8F2EF] ring-2 ring-[#0C4A3E]/20"
-                      : "border-[#E5E2DC] bg-[#FFFFFF] hover:border-[#64706C]"
+                      ? "border-[#064E3B] bg-emerald-50/50 ring-1 ring-[#064E3B]"
+                      : "border-slate-200 bg-white hover:border-slate-300"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="incident-category-radio"
-                        value={cat.code}
-                        checked={isSelected}
-                        onChange={() => setCategory(cat.code)}
-                        className="h-4 w-4 text-[#0C4A3E] focus:ring-[#0C4A3E]"
-                      />
-                      <span className="font-semibold text-xs text-[#121514]">{cat.title}</span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="incident-category-radio"
+                      value={cat.code}
+                      checked={isSelected}
+                      onChange={() => setCategory(cat.code)}
+                      className="h-4 w-4 text-[#064E3B] focus:ring-[#064E3B]"
+                    />
+                    <span className="font-semibold text-xs text-slate-900">{cat.title}</span>
                   </div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[#3F4946] pl-6">
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500 pl-6">
                     {cat.description}
                   </p>
                 </label>
@@ -181,30 +210,30 @@ export default function IncidentsPage() {
 
         {/* 4. Timestamp */}
         <div className="space-y-1.5">
-          <label htmlFor="occurred-at" className="text-sm font-semibold text-[#121514]">
-            Approximate Occurrence Time
+          <label htmlFor="occurred-at" className="text-xs font-semibold text-slate-700">
+            Approximate Occurrence Date & Time
           </label>
           <input
             type="datetime-local"
             id="occurred-at"
             value={occurredAt}
             onChange={(e) => setOccurredAt(e.target.value)}
-            className="w-full min-h-[48px] rounded-md border border-[#64706C]/40 bg-[#FFFFFF] px-3 py-2 text-sm text-[#121514] shadow-xs"
+            className="w-full min-h-[44px] rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 shadow-xs"
           />
         </div>
 
-        {/* 5. Factual Narrative Input */}
+        {/* 5. Factual Description */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label htmlFor="narrative" className="text-sm font-semibold text-[#121514]">
-              Factual Narrative
+            <label htmlFor="narrative" className="text-xs font-semibold text-slate-700">
+              Factual Narrative Description
             </label>
-            <span className="text-[11px] text-[#64706C] font-mono">
+            <span className="text-[11px] text-slate-400 font-mono">
               {narrative.length} / 4000
             </span>
           </div>
-          <p className="text-xs text-[#64706C]">
-            Stick to observable facts (e.g. &quot;Attempted call to 0803... at 14:15, fast-busy tone immediately&quot;). Avoid unsubstantiated accusations.
+          <p className="text-[11px] text-slate-500">
+            State observable facts (e.g. &quot;Attempted call to 0802... at 14:15, fast-busy tone immediately&quot;). Avoid accusations or speculation.
           </p>
           <textarea
             id="narrative"
@@ -213,22 +242,25 @@ export default function IncidentsPage() {
             value={narrative}
             onChange={(e) => setNarrative(e.target.value)}
             placeholder="Describe what occurred, your physical location, error prompts, and any error tones received..."
-            className="w-full rounded-md border border-[#64706C]/40 bg-[#FFFFFF] p-3 text-sm text-[#121514] shadow-xs focus:border-[#0C4A3E] focus:ring-1 focus:ring-[#0C4A3E]"
+            className="w-full rounded-md border border-slate-300 bg-white p-3 text-xs text-slate-900 shadow-xs focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]"
           />
         </div>
 
-        {/* 6. Optional Telco Complaint Reference */}
-        <div className="rounded-md border border-[#E5E2DC] bg-[#FBFBFA] p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#121514] uppercase tracking-wider">
-              Operator Complaint Escalation (Optional)
+        {/* 6. Optional Provider Ticket Reference */}
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <div>
+            <span className="text-xs font-bold text-slate-900 block">
+              Provider Dispute Details (Optional)
             </span>
-            <span className="text-[11px] text-[#64706C]">For NCC Escalations</span>
+            <span className="text-[11px] text-slate-500">
+              If you have already contacted customer care, record the reference here for later NCC escalation.
+            </span>
           </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="complaint-ref" className="text-xs font-semibold text-[#3F4946] block mb-1">
-                Telco Ticket / Reference ID
+              <label htmlFor="complaint-ref" className="text-xs font-medium text-slate-700 block mb-1">
+                Provider Ticket / Reference ID
               </label>
               <input
                 type="text"
@@ -236,11 +268,11 @@ export default function IncidentsPage() {
                 value={complaintRef}
                 onChange={(e) => setComplaintRef(e.target.value)}
                 placeholder="e.g. MTN-CAS-2026-99120"
-                className="w-full min-h-[44px] rounded border border-[#64706C]/40 bg-[#FFFFFF] px-3 py-1.5 text-xs text-[#121514]"
+                className="w-full min-h-[40px] rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900"
               />
             </div>
             <div>
-              <label htmlFor="complaint-date" className="text-xs font-semibold text-[#3F4946] block mb-1">
+              <label htmlFor="complaint-date" className="text-xs font-medium text-slate-700 block mb-1">
                 Date Contacted Provider
               </label>
               <input
@@ -248,40 +280,37 @@ export default function IncidentsPage() {
                 id="complaint-date"
                 value={complaintContactedAt}
                 onChange={(e) => setComplaintContactedAt(e.target.value)}
-                className="w-full min-h-[44px] rounded border border-[#64706C]/40 bg-[#FFFFFF] px-3 py-1.5 text-xs text-[#121514]"
+                className="w-full min-h-[40px] rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900"
               />
             </div>
           </div>
-          <p className="text-[11px] text-[#64706C]">
-            Under NCC guidelines, a valid operator complaint reference is required before the Commission can intervene via Toll-Free 622.
-          </p>
         </div>
 
         {/* Submit Button */}
         <button
           type="submit"
           disabled={isSubmitting || !narrative.trim()}
-          className="w-full min-h-[48px] rounded-md bg-[#0C4A3E] px-4 py-3 font-semibold text-white shadow-xs hover:bg-[#08352C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full min-h-[48px] rounded-md bg-[#064E3B] px-5 py-3 font-semibold text-white shadow-xs hover:bg-[#022C22] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <CheckCircleIcon className="h-5 w-5" aria-hidden="true" />
-          <span>Save Incident to Local Device Ledger</span>
+          <span>{editingId ? "Update Saved Incident" : "Save Incident to Device"}</span>
         </button>
       </form>
 
-      {/* Local Records List */}
-      <section aria-labelledby="records-heading" className="space-y-4">
+      {/* Saved Records List */}
+      <section aria-labelledby="saved-title" className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 id="records-heading" className="text-lg font-bold text-[#121514]">
-            Your Saved Local Incidents ({incidents.length})
+          <h2 id="saved-title" className="text-base font-bold text-slate-900">
+            Saved Incidents on this Device ({incidents.length})
           </h2>
-          <span className="text-xs font-medium text-[#64706C]">Device Storage</span>
+          <span className="text-xs text-slate-500">Local Browser Storage</span>
         </div>
 
         {incidents.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#E5E2DC] bg-[#FFFFFF] p-8 text-center space-y-2">
-            <p className="text-sm font-semibold text-[#121514]">No incidents recorded yet.</p>
-            <p className="text-xs text-[#64706C]">
-              When you experience a service drop or billing anomaly, log it above to assemble your private dispute evidence.
+          <div className="rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center space-y-1.5">
+            <p className="text-sm font-semibold text-slate-900">No incidents recorded yet.</p>
+            <p className="text-xs text-slate-500">
+              When a network failure occurs, log it above to preserve the record for your dispute dossier.
             </p>
           </div>
         ) : (
@@ -289,39 +318,44 @@ export default function IncidentsPage() {
             {incidents.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-[#E5E2DC] bg-[#FFFFFF] p-4 shadow-xs space-y-3"
+                className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs space-y-3"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E2DC] pb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs uppercase text-[#121514]">
+                    <span className="font-bold text-xs uppercase text-slate-900">
                       {item.fields.operator} · {item.fields.category.replace(/_/g, " ")}
                     </span>
                     <ProvenanceBadge provenance={item.provenance} />
                   </div>
-                  <span className="text-[11px] font-mono text-[#64706C]">
+                  <span className="text-[11px] font-mono text-slate-500">
                     {new Date(item.fields.occurred_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}
                   </span>
                 </div>
 
-                <p className="text-xs leading-relaxed text-[#3F4946]">
+                <p className="text-xs leading-relaxed text-slate-700">
                   {item.fields.narrative}
                 </p>
 
                 {item.fields.complaint_reference && (
-                  <div className="rounded bg-[#F4F3F0] p-2 text-[11px] text-[#3F4946]">
-                    Telco Ticket Ref: <strong className="font-mono text-[#121514]">{item.fields.complaint_reference}</strong>
+                  <div className="rounded bg-slate-50 p-2 text-[11px] text-slate-600">
+                    Provider Ticket Ref: <strong className="font-mono text-slate-900">{item.fields.complaint_reference}</strong>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-1 border-t border-[#E5E2DC]">
-                  <span className="text-[11px] font-mono text-[#64706C]">
-                    ID: {item.id.slice(0, 18)}...
-                  </span>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => handleEdit(item)}
+                    className="font-medium text-[#064E3B] hover:underline"
+                  >
+                    Edit details
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => handleDelete(item.id)}
-                    className="inline-flex items-center gap-1 text-xs text-[#991B1B] hover:text-[#7F1D1D] font-medium"
-                    aria-label={`Delete incident ${item.id}`}
+                    className="inline-flex items-center gap-1 text-rose-700 hover:text-rose-900 font-medium"
+                    aria-label={`Delete record ${item.id}`}
                   >
                     <TrashIcon className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Delete</span>
