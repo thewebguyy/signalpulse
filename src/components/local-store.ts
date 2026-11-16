@@ -1,9 +1,16 @@
 import { useSyncExternalStore } from "react";
-import type { Incident } from "@/contracts/incidents";
+import { incidentSchema, type Incident } from "@/contracts/incidents";
 import type { Measurement } from "@/contracts/measurements";
 
 const INCIDENTS_KEY = "signalpulse_local_incidents_v0.1";
-const MEASUREMENTS_KEY = "signalpulse_local_measurements_v0.1";
+
+export type StorageWriteResult =
+  | { success: true }
+  | {
+      success: false;
+      error: "storage_unavailable" | "quota_exceeded" | "validation_error" | "write_failed" | "simulation_isolated";
+      message: string;
+    };
 
 const listeners = new Set<() => void>();
 function emitChange() {
@@ -20,69 +27,161 @@ export function subscribeStore(listener: () => void) {
 let cachedIncidentsRaw: string | null = null;
 let cachedIncidents: Incident[] = [];
 
+/**
+ * Checks whether window.localStorage is accessible without throwing.
+ */
+export function isLocalStorageAvailable(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return typeof window.localStorage !== "undefined" && window.localStorage !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Safely reads and validates stored incident records.
+ * Invalid or malformed records are filtered out to prevent data corruption.
+ */
 export function getLocalIncidents(): Incident[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined" || !isLocalStorageAvailable()) return [];
   try {
     const raw = window.localStorage.getItem(INCIDENTS_KEY);
     if (raw === cachedIncidentsRaw) return cachedIncidents;
     cachedIncidentsRaw = raw;
-    cachedIncidents = raw ? JSON.parse(raw) : [];
+    if (!raw) {
+      cachedIncidents = [];
+      return cachedIncidents;
+    }
+
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      cachedIncidents = [];
+      return cachedIncidents;
+    }
+
+    // Strictly validate each record against the canonical contract
+    const validated: Incident[] = [];
+    for (const item of parsed) {
+      const result = incidentSchema.safeParse(item);
+      if (result.success) {
+        validated.push(result.data);
+      }
+    }
+
+    cachedIncidents = validated;
     return cachedIncidents;
   } catch {
     return [];
   }
 }
 
-let cachedMeasurementsRaw: string | null = null;
-let cachedMeasurements: Measurement[] = [];
-
+/**
+ * In this milestone, live calibrated measurements are unavailable.
+ * Simulated measurements are strictly isolated and never stored in genuine evidence.
+ */
 export function getLocalMeasurements(): Measurement[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(MEASUREMENTS_KEY);
-    if (raw === cachedMeasurementsRaw) return cachedMeasurements;
-    cachedMeasurementsRaw = raw;
-    cachedMeasurements = raw ? JSON.parse(raw) : [];
-    return cachedMeasurements;
-  } catch {
-    return [];
-  }
+  return [];
 }
 
-export function saveLocalIncident(incident: Incident): void {
-  if (typeof window === "undefined") return;
+/**
+ * Persists an incident record to localStorage with schema validation and error handling.
+ */
+export function saveLocalIncident(incident: Incident): StorageWriteResult {
+  // Validate against canonical contract
+  const validation = incidentSchema.safeParse(incident);
+  if (!validation.success) {
+    return {
+      success: false,
+      error: "validation_error",
+      message: "The incident record does not conform to the canonical incident schema.",
+    };
+  }
+
+  if (typeof window === "undefined" || !isLocalStorageAvailable()) {
+    return {
+      success: false,
+      error: "storage_unavailable",
+      message: "Browser local storage is not available in this environment (e.g. private browsing restrictions or cookies disabled).",
+    };
+  }
+
   try {
     const current = getLocalIncidents();
-    const updated = [incident, ...current.filter((i) => i.id !== incident.id)];
-    window.localStorage.setItem(INCIDENTS_KEY, JSON.stringify(updated.slice(0, 50)));
+    const updated = [validation.data, ...current.filter((i) => i.id !== incident.id)].slice(0, 50);
+    const serialized = JSON.stringify(updated);
+    window.localStorage.setItem(INCIDENTS_KEY, serialized);
+    cachedIncidentsRaw = serialized;
+    cachedIncidents = updated;
     emitChange();
-  } catch {
-    // Quota or storage unavailable
+    return { success: true };
+  } catch (err: unknown) {
+    if (
+      err instanceof DOMException &&
+      (err.name === "QuotaExceededError" || err.name === "NS_ERROR_DOM_QUOTA_REACHED" || err.code === 22 || err.code === 1014)
+    ) {
+      return {
+        success: false,
+        error: "quota_exceeded",
+        message: "Browser storage quota exceeded. Please export or delete older incident entries to free space.",
+      };
+    }
+    if (err instanceof DOMException && err.name === "SecurityError") {
+      return {
+        success: false,
+        error: "storage_unavailable",
+        message: "Browser local storage access is restricted or disabled.",
+      };
+    }
+    return {
+      success: false,
+      error: "write_failed",
+      message: "An unexpected error occurred while saving the incident to browser storage.",
+    };
   }
 }
 
-export function deleteLocalIncident(id: string): void {
-  if (typeof window === "undefined") return;
+/**
+ * Deletes an incident record by ID.
+ */
+export function deleteLocalIncident(id: string): StorageWriteResult {
+  if (typeof window === "undefined" || !isLocalStorageAvailable()) {
+    return {
+      success: false,
+      error: "storage_unavailable",
+      message: "Browser local storage is not available.",
+    };
+  }
+
   try {
     const current = getLocalIncidents();
-    const filtered = current.filter((i) => i.id !== id);
-    window.localStorage.setItem(INCIDENTS_KEY, JSON.stringify(filtered));
+    const updated = current.filter((i) => i.id !== id);
+    const serialized = JSON.stringify(updated);
+    window.localStorage.setItem(INCIDENTS_KEY, serialized);
+    cachedIncidentsRaw = serialized;
+    cachedIncidents = updated;
     emitChange();
+    return { success: true };
   } catch {
-    // Quota or storage unavailable
+    return {
+      success: false,
+      error: "write_failed",
+      message: "Failed to remove the incident from browser storage.",
+    };
   }
 }
 
-export function saveLocalMeasurement(measurement: Measurement): void {
-  if (typeof window === "undefined") return;
-  try {
-    const current = getLocalMeasurements();
-    const updated = [measurement, ...current.filter((m) => m.id !== measurement.id)];
-    window.localStorage.setItem(MEASUREMENTS_KEY, JSON.stringify(updated.slice(0, 50)));
-    emitChange();
-  } catch {
-    // Quota or storage unavailable
-  }
+/**
+ * Rejects saving simulated measurements into genuine evidence storage.
+ * Enforces architectural isolation between test runner simulation and real evidence.
+ */
+export function saveLocalMeasurement(_measurement: Measurement): StorageWriteResult {
+  void _measurement;
+  return {
+    success: false,
+    error: "simulation_isolated",
+    message: "Live network measurements are not active in this release. Simulated metrics cannot be saved to the evidence ledger.",
+  };
 }
 
 const emptyIncidents: Incident[] = [];

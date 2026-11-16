@@ -75,19 +75,29 @@ export default function IncidentsPage() {
       expires_at: new Date(Date.now() + 365 * 86400_000).toISOString(),
     };
 
-    saveLocalIncident(record);
-    setNarrative("");
-    setComplaintRef("");
-    setComplaintContactedAt("");
-    setEditingId(null);
+    const writeResult = saveLocalIncident(record);
     setIsSubmitting(false);
 
-    setToast({
-      id: "saved-incident",
-      type: "success",
-      title: editingId ? "Incident Updated" : "Incident Saved to Device",
-      message: "Stored locally in browser storage. Ready for your private Evidence Dossier.",
-    });
+    if (writeResult.success) {
+      setNarrative("");
+      setComplaintRef("");
+      setComplaintContactedAt("");
+      setEditingId(null);
+      setToast({
+        id: "saved-incident",
+        type: "success",
+        title: editingId ? "Incident Updated" : "Incident Saved to Device",
+        message: "Stored locally in browser storage. Ready for your private Evidence Dossier.",
+      });
+    } else {
+      // Retain entered form fields in memory so subscriber input is not lost
+      setToast({
+        id: "err-save",
+        type: "warning",
+        title: "Save Failed",
+        message: writeResult.message,
+      });
+    }
   };
 
   const handleEdit = (item: Incident) => {
@@ -109,14 +119,23 @@ export default function IncidentsPage() {
   };
 
   const handleDelete = (id: string) => {
-    deleteLocalIncident(id);
-    if (editingId === id) setEditingId(null);
-    setToast({
-      id: "deleted-incident",
-      type: "info",
-      title: "Record Deleted",
-      message: "The incident was permanently removed from local browser storage.",
-    });
+    const deleteResult = deleteLocalIncident(id);
+    if (deleteResult.success) {
+      if (editingId === id) setEditingId(null);
+      setToast({
+        id: "deleted-incident",
+        type: "info",
+        title: "Record Deleted",
+        message: "The incident was permanently removed from local browser storage.",
+      });
+    } else {
+      setToast({
+        id: "err-delete",
+        type: "warning",
+        title: "Delete Failed",
+        message: deleteResult.message,
+      });
+    }
   };
 
   return (
@@ -139,12 +158,18 @@ export default function IncidentsPage() {
         </p>
       </div>
 
-      {/* Storage Truth Notice */}
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 flex items-start gap-2.5">
-        <LockClosedIcon className="h-4 w-4 text-[#064E3B] shrink-0 mt-0.5" aria-hidden="true" />
-        <div>
-          <strong className="text-slate-900 font-semibold">Local Browser Storage Only: </strong>
-          Your entries are saved in this browser&apos;s local storage. They are never automatically uploaded to any server or published publicly without your explicit choice.
+      {/* Storage Truth & Shared Device Advisory */}
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 space-y-2">
+        <div className="flex items-start gap-2.5">
+          <LockClosedIcon className="h-4 w-4 text-[#064E3B] shrink-0 mt-0.5" aria-hidden="true" />
+          <div>
+            <strong className="text-slate-900 font-semibold">Local Browser Storage Only: </strong>
+            Your entries are saved solely in this browser profile&apos;s local storage. They are never automatically uploaded to any server or published without your explicit choice.
+          </div>
+        </div>
+        <div className="text-[11px] text-slate-500 pl-6 border-t border-slate-200/60 pt-1.5">
+          <strong className="text-slate-700 font-medium">Shared Device Advisory: </strong>
+          Anyone with access to this browser can view these local records. If you share this device, consider exporting your dossier and clearing your records.
         </div>
       </div>
 

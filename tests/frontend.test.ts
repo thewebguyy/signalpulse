@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 import { operatorSchema, incidentCategorySchema, provenanceSchema } from "@/contracts/domain";
 import { areaIdSchema } from "@/contracts/scalars";
 import { exportDocumentSchema } from "@/contracts/evidence";
@@ -85,9 +85,20 @@ describe("client-side local store safety and serialization", () => {
       expires_at: "2027-11-16T12:00:00.000Z",
     };
 
-    expect(() => saveLocalIncident(fakeIncident)).not.toThrow();
-    expect(() => deleteLocalIncident(fakeIncident.id)).not.toThrow();
+    const saveRes = saveLocalIncident(fakeIncident);
+    expect(saveRes.success).toBe(false);
+    if (!saveRes.success) {
+      expect(saveRes.error).toBe("storage_unavailable");
+    }
 
+    const delRes = deleteLocalIncident(fakeIncident.id);
+    expect(delRes.success).toBe(false);
+    if (!delRes.success) {
+      expect(delRes.error).toBe("storage_unavailable");
+    }
+  });
+
+  it("strictly enforces simulation isolation for measurements", () => {
     const fakeMeasurement: Measurement = {
       id: "00000000-0000-4000-8000-000000000097",
       client_record_id: "00000000-0000-4000-8000-000000000096",
@@ -120,7 +131,12 @@ describe("client-side local store safety and serialization", () => {
       expires_at: "2027-02-14T12:00:00.000Z",
     };
 
-    expect(() => saveLocalMeasurement(fakeMeasurement)).not.toThrow();
+    const res = saveLocalMeasurement(fakeMeasurement);
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error).toBe("simulation_isolated");
+    }
+    expect(getLocalMeasurements()).toEqual([]);
   });
 
   it("compiles valid export documents compliant with exportDocumentSchema", () => {
@@ -162,5 +178,152 @@ describe("client-side local store safety and serialization", () => {
 
     const parsed = exportDocumentSchema.safeParse(doc);
     expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.incidents[0]?.provenance).toBe("user_reported");
+      expect(parsed.data.measurements).toEqual([]);
+      expect(parsed.data.assets).toEqual([]);
+    }
+  });
+});
+
+describe("localStorage simulation and edge-case error handling", () => {
+  let mockStorage: Record<string, string> = {};
+
+  beforeEach(() => {
+    mockStorage = {};
+    const storageMock = {
+      getItem: (key: string) => mockStorage[key] ?? null,
+      setItem: (key: string, val: string) => {
+        mockStorage[key] = val;
+      },
+      removeItem: (key: string) => {
+        delete mockStorage[key];
+      },
+      clear: () => {
+        mockStorage = {};
+      },
+    };
+
+    // Install mock on global window
+    Object.defineProperty(globalThis, "window", {
+      value: {
+        localStorage: storageMock,
+      },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  it("successfully reads and writes valid incident records", () => {
+    const validIncident: Incident = {
+      id: "00000000-0000-4000-8000-000000000001",
+      client_record_id: "00000000-0000-4000-8000-000000000002",
+      provenance: "user_reported",
+      revision: 1,
+      fields: {
+        operator: "airtel",
+        area_id: "ikeja",
+        category: "dropped_call",
+        occurred_at: "2026-11-16T14:00:00.000Z",
+        narrative: "Voice call dropped repeatedly after 15 seconds.",
+        complaint_reference: "AIRTEL-REF-999",
+        complaint_contacted_at: "2026-11-16T14:10:00.000Z",
+      },
+      created_at: "2026-11-16T14:00:00.000Z",
+      updated_at: "2026-11-16T14:00:00.000Z",
+      expires_at: "2027-11-16T14:00:00.000Z",
+    };
+
+    const writeRes = saveLocalIncident(validIncident);
+    expect(writeRes.success).toBe(true);
+
+    const loaded = getLocalIncidents();
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0]?.id).toBe(validIncident.id);
+    expect(loaded[0]?.fields.operator).toBe("airtel");
+
+    // Deletion
+    const delRes = deleteLocalIncident(validIncident.id);
+    expect(delRes.success).toBe(true);
+    expect(getLocalIncidents()).toHaveLength(0);
+  });
+
+  it("handles malformed JSON in localStorage without throwing", () => {
+    mockStorage["signalpulse_local_incidents_v0.1"] = "{ malformed json string !!!";
+    expect(() => getLocalIncidents()).not.toThrow();
+    expect(getLocalIncidents()).toEqual([]);
+  });
+
+  it("filters out invalid records that do not conform to incidentSchema", () => {
+    const corruptedList = [
+      { id: "not-a-valid-uuid", fields: { operator: "unknown_operator" } },
+      {
+        id: "00000000-0000-4000-8000-000000000003",
+        client_record_id: "00000000-0000-4000-8000-000000000004",
+        provenance: "user_reported",
+        revision: 1,
+        fields: {
+          operator: "mtn",
+          area_id: "surulere",
+          category: "billing_dispute",
+          occurred_at: "2026-11-16T15:00:00.000Z",
+          narrative: "Airtime deduction without service delivery.",
+          complaint_reference: null,
+          complaint_contacted_at: null,
+        },
+        created_at: "2026-11-16T15:00:00.000Z",
+        updated_at: "2026-11-16T15:00:00.000Z",
+        expires_at: "2027-11-16T15:00:00.000Z",
+      },
+    ];
+
+    mockStorage["signalpulse_local_incidents_v0.1"] = JSON.stringify(corruptedList);
+    const loaded = getLocalIncidents();
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0]?.id).toBe("00000000-0000-4000-8000-000000000003");
+  });
+
+  it("rejects saving invalid incident objects with validation_error", () => {
+    // @ts-expect-error Testing invalid incident object
+    const badIncident: Incident = { id: "not-uuid" };
+    const res = saveLocalIncident(badIncident);
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error).toBe("validation_error");
+    }
+  });
+
+  it("catches QuotaExceededError and returns quota_exceeded status", () => {
+    // Override setItem to throw QuotaExceededError
+    window.localStorage.setItem = () => {
+      const err = new DOMException("Quota exceeded", "QuotaExceededError");
+      throw err;
+    };
+
+    const validIncident: Incident = {
+      id: "00000000-0000-4000-8000-000000000005",
+      client_record_id: "00000000-0000-4000-8000-000000000006",
+      provenance: "user_reported",
+      revision: 1,
+      fields: {
+        operator: "t2mobile",
+        area_id: "badagry",
+        category: "failed_call",
+        occurred_at: "2026-11-16T16:00:00.000Z",
+        narrative: "Repeated call drops.",
+        complaint_reference: null,
+        complaint_contacted_at: null,
+      },
+      created_at: "2026-11-16T16:00:00.000Z",
+      updated_at: "2026-11-16T16:00:00.000Z",
+      expires_at: "2027-11-16T16:00:00.000Z",
+    };
+
+    const res = saveLocalIncident(validIncident);
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error).toBe("quota_exceeded");
+      expect(res.message).toContain("quota");
+    }
   });
 });
