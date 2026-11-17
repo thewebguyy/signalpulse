@@ -9,13 +9,7 @@ export class SupabaseSyncAdapter implements SyncPort {
     const now = new Date().toISOString();
 
     if (!supabase) {
-      // In synthetic mode, pretend all local records synced safely
-      return {
-        synced_count: request.incidents.length + request.deleted_incident_ids.length,
-        failed_count: 0,
-        conflicts: [],
-        synced_at: now,
-      };
+      throw new Error("Cloud sync is disabled in synthetic mode.");
     }
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -23,31 +17,8 @@ export class SupabaseSyncAdapter implements SyncPort {
       throw new Error("Active session required to synchronize evidence with cloud vault.");
     }
 
-    // Idempotency ledger check
-    const { data: existingSync } = await supabase
-      .from("sync_operations")
-      .select("id, status")
-      .eq("client_mutation_id", request.client_mutation_id)
-      .maybeSingle();
-
-    if (existingSync && existingSync.status === "completed") {
-      return {
-        synced_count: request.incidents.length,
-        failed_count: 0,
-        conflicts: [],
-        synced_at: now,
-      };
-    }
-
-    // Register sync operation in progress
-    await supabase.from("sync_operations").upsert({
-      owner_id: user.id,
-      client_mutation_id: request.client_mutation_id,
-      operation_type: "upsert_incident",
-      status: "pending",
-      payload: { count: request.incidents.length },
-      created_at: now,
-    });
+    // Never trust a client-writable operation ledger as proof that records
+    // were persisted. Each item is checked against the owned row below.
 
     let syncedCount = 0;
     let failedCount = 0;
@@ -57,14 +28,27 @@ export class SupabaseSyncAdapter implements SyncPort {
     for (const item of request.incidents) {
       try {
         // Check if an incident with this client_record_id already exists for this owner
-        const { data: existing } = await supabase
+        const { data: existing, error: readError } = await supabase
           .from("incidents")
-          .select("id, revision, updated_at")
+          .select("id, revision, operator, area_id, category, occurred_at, narrative, complaint_reference, complaint_contacted_at")
           .eq("client_record_id", item.client_record_id)
           .maybeSingle();
+        if (readError) throw readError;
 
         if (existing) {
-          if (existing.revision > item.revision) {
+          if (existing.revision >= item.revision) {
+            const identical = existing.revision === item.revision &&
+              existing.operator === item.fields.operator &&
+              existing.area_id === item.fields.area_id &&
+              existing.category === item.fields.category &&
+              existing.occurred_at === item.fields.occurred_at &&
+              existing.narrative === item.fields.narrative &&
+              existing.complaint_reference === item.fields.complaint_reference &&
+              existing.complaint_contacted_at === item.fields.complaint_contacted_at;
+            if (identical) {
+              syncedCount++;
+              continue;
+            }
             // Server revision is newer: flag non-destructive conflict
             conflicts.push({
               id: item.id,
@@ -74,9 +58,13 @@ export class SupabaseSyncAdapter implements SyncPort {
             });
             continue;
           }
+          if (existing.revision !== item.revision - 1) {
+            failedCount++;
+            continue;
+          }
 
           // Client revision matches or is newer: update
-          const { error: updateError } = await supabase
+          const { data: updated, error: updateError } = await supabase
             .from("incidents")
             .update({
               operator: item.fields.operator,
@@ -86,19 +74,22 @@ export class SupabaseSyncAdapter implements SyncPort {
               narrative: item.fields.narrative,
               complaint_reference: item.fields.complaint_reference,
               complaint_contacted_at: item.fields.complaint_contacted_at,
-              revision: item.revision + 1,
+              revision: item.revision,
               updated_at: now,
             })
-            .eq("id", existing.id);
+            .eq("id", existing.id)
+            .eq("revision", existing.revision)
+            .select("id")
+            .maybeSingle();
 
-          if (updateError) {
+          if (updateError || !updated) {
             failedCount++;
           } else {
             syncedCount++;
           }
         } else {
           // New incident: insert
-          const { error: insertError } = await supabase
+          const { data: inserted, error: insertError } = await supabase
             .from("incidents")
             .insert({
               id: item.id,
@@ -116,9 +107,11 @@ export class SupabaseSyncAdapter implements SyncPort {
               created_at: item.created_at,
               updated_at: item.updated_at,
               expires_at: item.expires_at,
-            });
+            })
+            .select("id")
+            .maybeSingle();
 
-          if (insertError) {
+          if (insertError || !inserted) {
             failedCount++;
           } else {
             syncedCount++;
@@ -132,23 +125,18 @@ export class SupabaseSyncAdapter implements SyncPort {
     // Process deletions
     for (const deleteId of request.deleted_incident_ids) {
       try {
-        await supabase
+        const { data: deleted, error: deleteError } = await supabase
           .from("incidents")
           .update({ deleted_at: now })
-          .eq("id", deleteId);
-        syncedCount++;
+          .eq("id", deleteId)
+          .select("id")
+          .maybeSingle();
+        if (deleteError || !deleted) failedCount++;
+        else syncedCount++;
       } catch {
         failedCount++;
       }
     }
-
-    // Finalize sync operation status
-    await supabase
-      .from("sync_operations")
-      .update({
-        status: conflicts.length > 0 ? "conflict" : "completed",
-      })
-      .eq("client_mutation_id", request.client_mutation_id);
 
     return {
       synced_count: syncedCount,

@@ -12,14 +12,12 @@ import {
   ArrowRightIcon,
   AlertCircleIcon,
 } from "@/components/icons";
-import { EvidenceAttachmentCard, type AttachedEvidenceItem } from "@/components/evidence-attachment-card";
 
 export default function EvidencePage() {
   const incidents = useLocalIncidents();
   const storageDiagnostics = useStorageDiagnostics();
 
   const [selectedIncidentIds, setSelectedIncidentIds] = useState<Set<string>>(new Set());
-  const [attachments, setAttachments] = useState<AttachedEvidenceItem[]>([]);
 
   const [complaintText, setComplaintText] = useState<string>(
     "I am writing to report repeated mobile network problems I experienced in Lagos State. Please review the attached dates, times, and details and resolve this issue."
@@ -56,20 +54,6 @@ export default function EvidencePage() {
 
   const handleDeselectAll = () => {
     setSelectedIncidentIds(new Set());
-  };
-
-  const handleAddAttachment = (item: AttachedEvidenceItem) => {
-    setAttachments((prev) => [...prev, item]);
-    setToast({
-      id: "attach-added",
-      type: "success",
-      title: "Document attached",
-      message: `${item.filename} added to private dossier.`,
-    });
-  };
-
-  const handleRemoveAttachment = (id: string) => {
-    setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
   const handleExportJSON = () => {
@@ -348,12 +332,7 @@ export default function EvidencePage() {
         />
       </section>
 
-      {/* Supporting Attachments & Receipts */}
-      <EvidenceAttachmentCard
-        attachments={attachments}
-        onAttach={handleAddAttachment}
-        onRemove={handleRemoveAttachment}
-      />
+      <p className="text-xs text-slate-600">File attachments are unavailable in this preview. Keep original screenshots and receipts on your device; exported evidence contains text reports only.</p>
 
       {/* 3. Printable Summary Preview */}
       <section aria-labelledby="preview-title" className="rounded-xl border border-slate-300 bg-white p-6 sm:p-8 space-y-6 print-expand">
@@ -375,20 +354,6 @@ export default function EvidencePage() {
           <span className="font-semibold text-slate-900 block mb-1">Your note:</span>
           {complaintText.trim() || "No note written yet."}
         </div>
-
-        {/* Attached Files Summary in Preview */}
-        {attachments.length > 0 && (
-          <div className="rounded-md bg-slate-50 p-4 text-xs text-slate-800 border border-slate-200 space-y-2">
-            <span className="font-semibold text-slate-900 block">Attached Proof of Payment & Errors ({attachments.length}):</span>
-            <ul className="list-disc pl-4 space-y-1">
-              {attachments.map((att) => (
-                <li key={att.id}>
-                  {att.filename} ({att.fileType.replace(/_/g, " ")}) — {(att.byteSize / 1024).toFixed(0)} KB
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         <div className="space-y-2">
           <h3 className="text-sm font-bold text-slate-900">

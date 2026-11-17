@@ -30,7 +30,7 @@ describe("API v1 Cloud Evidence Endpoints", () => {
   it("POST /api/v1/session rejects creation without explicit limitations acknowledgement", async () => {
     const req = new Request("http://127.0.0.1/api/v1/session", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Origin: "http://127.0.0.1" },
       body: JSON.stringify({ accept_guest_limitations: false }),
     });
 
@@ -38,42 +38,37 @@ describe("API v1 Cloud Evidence Endpoints", () => {
     expect(res.status).toBe(400);
   });
 
-  it("POST /api/v1/session establishes active guest session when limitations acknowledged", async () => {
+  it("POST /api/v1/session does not claim a guest session in synthetic mode", async () => {
     const req = new Request("http://127.0.0.1/api/v1/session", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Origin: "http://127.0.0.1" },
       body: JSON.stringify({ accept_guest_limitations: true }),
     });
 
     const res = await postSession(req);
-    expect(res.status).toBe(201);
-    const body = await res.json();
-    expect(body.data.state).toBe("active_guest");
-    expect(body.data.owner_id).toBeDefined();
+    expect(res.status).toBe(503);
   });
 
-  it("POST /api/v1/session/recovery links email without phone number", async () => {
+  it("POST /api/v1/session/recovery does not claim recovery in synthetic mode", async () => {
     const req = new Request("http://127.0.0.1/api/v1/session/recovery", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Origin: "http://127.0.0.1" },
       body: JSON.stringify({ email: "subscriber@example.com" }),
     });
 
     const res = await postRecovery(req);
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.data.recovery_mode).toBe("email_linked");
+    expect(res.status).toBe(503);
   });
 
   it("POST /api/v1/session/logout revokes session with 204 No Content", async () => {
-    const res = await postLogout();
+    const res = await postLogout(new Request("http://127.0.0.1/api/v1/session/logout", { method: "POST", headers: { Origin: "http://127.0.0.1" } }));
     expect(res.status).toBe(204);
   });
 
-  it("POST /api/v1/incidents/sync processes batch mutations idempotently", async () => {
+  it("POST /api/v1/incidents/sync does not acknowledge synthetic writes", async () => {
     const req = new Request("http://127.0.0.1/api/v1/incidents/sync", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Origin: "http://127.0.0.1" },
       body: JSON.stringify({
         client_mutation_id: "mut-test-1",
         incidents: [incident],
@@ -82,16 +77,13 @@ describe("API v1 Cloud Evidence Endpoints", () => {
     });
 
     const res = await postSync(req);
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.data.synced_count).toBe(1);
-    expect(body.data.conflicts).toEqual([]);
+    expect(res.status).toBe(503);
   });
 
-  it("POST /api/v1/attachments reserves private evidence slot within 5MB cap", async () => {
+  it("POST /api/v1/attachments does not reserve synthetic storage", async () => {
     const req = new Request("http://127.0.0.1/api/v1/attachments", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Origin: "http://127.0.0.1" },
       body: JSON.stringify({
         incident_id: incident.id,
         original_filename: "bank_receipt.jpg",
@@ -103,9 +95,19 @@ describe("API v1 Cloud Evidence Endpoints", () => {
     });
 
     const res = await postAttachment(req);
-    expect(res.status).toBe(201);
-    const body = await res.json();
-    expect(body.data.status).toBe("reserved");
-    expect(body.data.incident_id).toBe(incident.id);
+    expect(res.status).toBe(503);
+  });
+
+  it("rejects cross-origin and missing-origin cookie mutations", async () => {
+    for (const origin of ["https://evil.example", null]) {
+      const req = new Request("http://127.0.0.1/api/v1/session", {
+        method: "POST",
+        headers: origin ? { Origin: origin } : {},
+        body: JSON.stringify({ accept_guest_limitations: true }),
+      });
+      const res = await postSession(req);
+      expect(res.status).toBe(403);
+      expect((await res.json()).error.code).toBe("request_forbidden");
+    }
   });
 });

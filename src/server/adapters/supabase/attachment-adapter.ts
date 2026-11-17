@@ -2,73 +2,14 @@ import "server-only";
 import type { AttachmentStoragePort } from "@/modules/attachments/port";
 import type { AttachmentMetadata, AttachmentReserveRequest } from "@/contracts/attachments";
 import { createSupabaseServerClient } from "./client";
+import { getServerEnvironment } from "@/config/server";
 
 export class SupabaseAttachmentAdapter implements AttachmentStoragePort {
   async reserve(request: AttachmentReserveRequest): Promise<AttachmentMetadata> {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      const now = new Date().toISOString();
-      return {
-        id: crypto.randomUUID(),
-        incident_id: request.incident_id,
-        storage_path: `synthetic/${request.incident_id}/${request.sha256_hash.slice(0, 16)}.bin`,
-        original_filename: request.original_filename,
-        file_type: request.file_type,
-        mime_type: request.mime_type,
-        byte_size: request.byte_size,
-        sha256_hash: request.sha256_hash,
-        status: "reserved",
-        created_at: now,
-        scanned_at: null,
-      };
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error("Active session required to upload attachments.");
-    }
-
-    const id = crypto.randomUUID();
-    const storagePath = `${user.id}/${request.incident_id}/${id}.bin`;
-    const now = new Date().toISOString();
-
-    const insertData = {
-      id,
-      owner_id: user.id,
-      incident_id: request.incident_id,
-      storage_path: storagePath,
-      original_filename: request.original_filename,
-      file_type: request.file_type,
-      mime_type: request.mime_type,
-      byte_size: request.byte_size,
-      sha256_hash: request.sha256_hash,
-      status: "reserved",
-      created_at: now,
-    };
-
-    const { data, error } = await supabase
-      .from("attachment_metadata")
-      .insert(insertData)
-      .select()
-      .single();
-
-    if (error || !data) {
-      throw new Error("Failed to reserve attachment slot: " + (error?.message ?? "unknown"));
-    }
-
-    return {
-      id: data.id,
-      incident_id: data.incident_id,
-      storage_path: data.storage_path,
-      original_filename: data.original_filename,
-      file_type: data.file_type,
-      mime_type: data.mime_type,
-      byte_size: data.byte_size,
-      sha256_hash: data.sha256_hash,
-      status: data.status,
-      created_at: data.created_at,
-      scanned_at: data.scanned_at,
-    };
+    // A reservation without a bounded content pipeline creates orphaned
+    // metadata and can be abused for unbounded storage. Keep it unavailable.
+    void request;
+    throw new Error("Attachment reservation requires a verified security pipeline.");
   }
 
   async getMetadata(id: string): Promise<AttachmentMetadata> {
@@ -104,55 +45,23 @@ export class SupabaseAttachmentAdapter implements AttachmentStoragePort {
   }
 
   async uploadContent(id: string, fileBytes: Uint8Array): Promise<AttachmentMetadata> {
+    const env = getServerEnvironment();
+    if (env.SIGNALPULSE_DATA_MODE !== "cloud_preview" || env.SIGNALPULSE_ATTACHMENTS_ENABLED !== "true") throw new Error("Attachment upload is disabled.");
     const supabase = await createSupabaseServerClient();
     if (!supabase) {
       throw new Error("Cloud storage disabled in synthetic mode");
     }
 
-    const meta = await this.getMetadata(id);
-
-    // Upload to private evidence-attachments bucket
-    const { error: uploadError } = await supabase.storage
-      .from("evidence-attachments")
-      .upload(meta.storage_path, fileBytes, {
-        contentType: meta.mime_type,
-        upsert: false,
-      });
-
-    if (uploadError) {
-      await supabase.from("attachment_metadata").update({ status: "rejected" }).eq("id", id);
-      throw new Error("Failed to store attachment in private vault: " + uploadError.message);
-    }
-
-    // Mark as clean / quarantined
-    const now = new Date().toISOString();
-    const { data, error: updateError } = await supabase
-      .from("attachment_metadata")
-      .update({ status: "clean", scanned_at: now })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (updateError || !data) {
-      throw new Error("Failed to finalize attachment state");
-    }
-
-    return {
-      id: data.id,
-      incident_id: data.incident_id,
-      storage_path: data.storage_path,
-      original_filename: data.original_filename,
-      file_type: data.file_type,
-      mime_type: data.mime_type,
-      byte_size: data.byte_size,
-      sha256_hash: data.sha256_hash,
-      status: data.status,
-      created_at: data.created_at,
-      scanned_at: data.scanned_at,
-    };
+    // No scanner, content sniffing or digest verification is implemented. Never
+    // turn untrusted bytes into a clean, downloadable evidence asset.
+    void id;
+    void fileBytes;
+    throw new Error("Attachment content upload requires a verified security pipeline.");
   }
 
   async downloadContent(id: string): Promise<{ data: Uint8Array; mimeType: string; originalFilename: string }> {
+    const env = getServerEnvironment();
+    if (env.SIGNALPULSE_DATA_MODE !== "cloud_preview" || env.SIGNALPULSE_ATTACHMENTS_ENABLED !== "true") throw new Error("Attachment download is disabled.");
     const supabase = await createSupabaseServerClient();
     if (!supabase) {
       throw new Error("Cloud storage disabled in synthetic mode");
@@ -180,15 +89,19 @@ export class SupabaseAttachmentAdapter implements AttachmentStoragePort {
   }
 
   async delete(id: string): Promise<void> {
+    const env = getServerEnvironment();
+    if (env.SIGNALPULSE_DATA_MODE !== "cloud_preview" || env.SIGNALPULSE_ATTACHMENTS_ENABLED !== "true") throw new Error("Attachment deletion is disabled.");
     const supabase = await createSupabaseServerClient();
-    if (!supabase) return;
+    if (!supabase) throw new Error("Cloud attachments are disabled.");
 
     const meta = await this.getMetadata(id);
 
     // Delete from storage bucket
-    await supabase.storage.from("evidence-attachments").remove([meta.storage_path]);
+    const { error: storageError } = await supabase.storage.from("evidence-attachments").remove([meta.storage_path]);
+    if (storageError) throw new Error("Attachment object deletion could not be confirmed.");
 
     // Mark as deleting / remove metadata
-    await supabase.from("attachment_metadata").delete().eq("id", id);
+    const { data: removed, error: metadataError } = await supabase.from("attachment_metadata").delete().eq("id", id).select("id").maybeSingle();
+    if (metadataError || !removed) throw new Error("Attachment metadata deletion could not be confirmed.");
   }
 }

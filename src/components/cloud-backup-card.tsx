@@ -1,33 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
-import { useSyncEngine, enrollInCloudBackup, linkRecoveryEmail, triggerSync } from "./sync-store";
+import { useSyncEngine, enrollInCloudBackup, triggerSync } from "./sync-store";
 
 export function CloudBackupCard() {
   const syncState = useSyncEngine();
   const [isOpen, setIsOpen] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
-  const [email, setEmail] = useState("");
-  const [recoveryStatus, setRecoveryStatus] = useState<string | null>(null);
-  const [isLinking, setIsLinking] = useState(false);
+  const [enrollError, setEnrollError] = useState<string | null>(null);
+  // Cloud enrollment stays unavailable until hosted isolation and recovery gates pass.
+  const cloudEnabled = false;
 
   const handleEnroll = async () => {
     setIsEnrolling(true);
-    await enrollInCloudBackup(true);
+    const success = await enrollInCloudBackup(true);
+    if (!success) setEnrollError("Cloud backup is unavailable. Your reports remain on this device.");
     setIsEnrolling(false);
-  };
-
-  const handleLinkEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-    setIsLinking(true);
-    setRecoveryStatus(null);
-    const result = await linkRecoveryEmail(email.trim());
-    setIsLinking(false);
-    setRecoveryStatus(result.message);
-    if (result.success) {
-      setEmail("");
-    }
   };
 
   return (
@@ -44,7 +32,7 @@ export function CloudBackupCard() {
               Private Cloud Backup
               {syncState.backupEnrolled ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                  Active
+                  Session active
                 </span>
               ) : (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
@@ -54,8 +42,8 @@ export function CloudBackupCard() {
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {syncState.backupEnrolled
-                ? "Your records back up automatically to your private vault."
-                : "Your reports stay on this phone by default. Enable backup to prevent data loss."}
+                ? "Check each report's sync status. A guest session does not guarantee that every report is backed up."
+                : "Your reports stay on this device. Cloud backup is not active."}
             </p>
           </div>
         </div>
@@ -78,21 +66,22 @@ export function CloudBackupCard() {
               </h4>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                 By default, SignalPulse saves everything in this browser. If you clear browser history or use Private Browsing, your reports disappear. 
-                Enabling backup stores an encrypted copy in your private vault so your evidence is preserved.
+                Cloud backup requires an active guest session and confirmed sync for each report. Clearing this browser before recovery is available can make cloud records inaccessible.
               </p>
               <div className="mt-3 flex items-center gap-3">
                 <button
                   type="button"
                   onClick={handleEnroll}
-                  disabled={isEnrolling}
+                  disabled={isEnrolling || !cloudEnabled}
                   className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 transition-colors"
                 >
-                  {isEnrolling ? "Enabling..." : "Enable Private Backup"}
+                  {isEnrolling ? "Enabling..." : cloudEnabled ? "Enable Private Backup" : "Cloud backup unavailable"}
                 </button>
                 <span className="text-xs text-slate-500 dark:text-slate-400">
-                  No signup or password needed.
+                  {cloudEnabled ? "Guest sessions have no verified lost-device recovery." : "This preview keeps reports on this device."}
                 </span>
               </div>
+              {enrollError && <p role="alert" className="mt-2 text-xs text-rose-700">{enrollError}</p>}
             </div>
           ) : (
             <div className="space-y-3">
@@ -113,51 +102,16 @@ export function CloudBackupCard() {
                 </button>
               </div>
 
-              {/* Recovery Linking */}
+              {/* Recovery remains unavailable until confirmation and lost-device tests pass. */}
               <div className="bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
                 <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   Device Recovery
-                  {syncState.recoveryMode === "email_linked" ? (
-                    <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-                      ✓ Email Linked
-                    </span>
-                  ) : (
-                    <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
-                      ⚠ Recovery Not Set
-                    </span>
-                  )}
+                  <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">Unavailable</span>
                 </h4>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-                  {syncState.recoveryMode === "email_linked"
-                    ? "If you switch devices or reset your browser, you can recover your private vault using your linked email."
-                    : "Your cloud backup is tied to this browser. Add an email so you can recover your vault if you switch phones or clear cookies."}
+                  Recovery linking has not been verified. Keep this browser session and export important reports.
                 </p>
 
-                {syncState.recoveryMode !== "email_linked" && (
-                  <form onSubmit={handleLinkEmail} className="mt-3 flex gap-2">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter recovery email"
-                      required
-                      className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    />
-                    <button
-                      type="submit"
-                      disabled={isLinking}
-                      className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 disabled:opacity-50 transition-colors shrink-0"
-                    >
-                      {isLinking ? "Linking..." : "Link Email"}
-                    </button>
-                  </form>
-                )}
-
-                {recoveryStatus && (
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2 font-medium">
-                    {recoveryStatus}
-                  </p>
-                )}
               </div>
             </div>
           )}

@@ -11,7 +11,6 @@ const cloudEnvironmentSchema = z.strictObject({
   NEXT_PUBLIC_ENABLE_CLOUD_BACKUP: z.enum(["true", "false"]).default("false"),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   SIGNALPULSE_ATTACHMENTS_ENABLED: z.enum(["true", "false"]).default("false"),
 });
 
@@ -51,6 +50,9 @@ export function parseEnvironment(input: Readonly<Record<string, string | undefin
   if (mode !== "cloud_preview") {
     throw new Error("Unsupported data mode. Consult .env.example.");
   }
+  if (input.SUPABASE_SERVICE_ROLE_KEY !== undefined || input.SUPABASE_SECRET_KEY !== undefined) {
+    throw new Error("Privileged Supabase credentials are unsupported by this application.");
+  }
 
   // Reject unexpected NEXT_PUBLIC_ keys
   const disallowedNextPublic = Object.keys(input).some((key) => {
@@ -86,7 +88,6 @@ export function parseEnvironment(input: Readonly<Record<string, string | undefin
     NEXT_PUBLIC_ENABLE_CLOUD_BACKUP: input.NEXT_PUBLIC_ENABLE_CLOUD_BACKUP,
     NEXT_PUBLIC_SUPABASE_URL: input.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: input.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    SUPABASE_SERVICE_ROLE_KEY: input.SUPABASE_SERVICE_ROLE_KEY,
     SIGNALPULSE_ATTACHMENTS_ENABLED: input.SIGNALPULSE_ATTACHMENTS_ENABLED,
   });
 

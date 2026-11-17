@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { SupabaseAttachmentAdapter } from "@/server/adapters/supabase/attachment-adapter";
 import { createFailure } from "@/server/errors";
+import { isSameOriginMutation } from "@/server/request-origin";
 
 const attachments = new SupabaseAttachmentAdapter();
 
@@ -35,9 +36,13 @@ export async function GET(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  if (!isSameOriginMutation(req)) {
+    const failure = createFailure("request_forbidden", crypto.randomUUID());
+    return NextResponse.json(failure.body, { status: failure.status });
+  }
   const { id } = await context.params;
   try {
     await attachments.delete(id);
@@ -48,6 +53,7 @@ export async function DELETE(
       },
     });
   } catch {
-    return new NextResponse(null, { status: 204 });
+    const failure = createFailure("temporarily_unavailable", crypto.randomUUID());
+    return NextResponse.json(failure.body, { status: failure.status });
   }
 }

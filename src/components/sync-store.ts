@@ -54,7 +54,8 @@ function loadSavedSyncState(): void {
       if (typeof parsed === "object" && parsed !== null) {
         syncState = {
           ...syncState,
-          backupEnrolled: Boolean(parsed.backupEnrolled),
+          // Persisted browser flags are not proof of an authenticated session.
+          backupEnrolled: false,
           recoveryMode: parsed.recoveryMode === "email_linked" ? "email_linked" : "none",
           lastSyncAttempt: typeof parsed.lastSyncAttempt === "string" ? parsed.lastSyncAttempt : null,
           records: typeof parsed.records === "object" && parsed.records !== null ? parsed.records : {},
@@ -114,11 +115,20 @@ async function checkRemoteSession(): Promise<void> {
     if (!res.ok) return;
     const body = await res.json();
     if (body?.data?.state === "active_guest") {
+      const records = Object.fromEntries(Object.entries(syncState.records).map(([id, meta]) =>
+        [id, meta.status === "synced" ? { ...meta, status: "queued" as const, lastSyncedAt: null, lastError: "Rechecking cloud owner and record status." } : meta]));
       syncState = {
         ...syncState,
         backupEnrolled: true,
         recoveryMode: body.data.recovery_mode === "email_linked" ? "email_linked" : "none",
+        records,
       };
+      persistSyncState();
+      emitSyncChange();
+    } else {
+      const records = Object.fromEntries(Object.entries(syncState.records).map(([id, meta]) =>
+        [id, meta.status === "synced" ? { ...meta, status: "failed" as const, lastSyncedAt: null, lastError: "Cloud session is no longer verified." } : meta]));
+      syncState = { ...syncState, backupEnrolled: false, recoveryMode: "none", records };
       persistSyncState();
       emitSyncChange();
     }
@@ -182,6 +192,11 @@ export async function linkRecoveryEmail(email: string): Promise<{ success: boole
       return { success: false, message: "Could not link recovery email. Please try again." };
     }
 
+    const body = await res.json();
+    if (body?.data?.success !== true || body.data.recovery_mode !== "email_linked") {
+      return { success: false, message: "Recovery is not yet verified. Keep this device session and your local evidence." };
+    }
+
     syncState = {
       ...syncState,
       recoveryMode: "email_linked",
@@ -242,7 +257,8 @@ export async function triggerSync(): Promise<void> {
     }
 
     const body = await res.json();
-    const conflicts = body?.data?.conflicts ?? [];
+    if (!body?.data || typeof body.data.synced_count !== "number" || typeof body.data.failed_count !== "number") throw new Error("Invalid sync acknowledgement");
+    const conflicts = body.data.conflicts ?? [];
     const conflictIds = new Set(conflicts.map((c: { id: string }) => c.id));
 
     const updatedRecords = { ...syncState.records };
@@ -253,12 +269,14 @@ export async function triggerSync(): Promise<void> {
           lastSyncedAt: now,
           lastError: "A newer revision exists in cloud vault. Local draft preserved.",
         };
-      } else {
+      } else if (body.data.failed_count === 0 && body.data.synced_count === incidents.length) {
         updatedRecords[incident.id] = {
           status: "synced",
           lastSyncedAt: now,
           lastError: null,
         };
+      } else {
+        updatedRecords[incident.id] = { status: "failed", lastSyncedAt: null, lastError: "Cloud did not confirm this record. Local copy preserved." };
       }
     }
 

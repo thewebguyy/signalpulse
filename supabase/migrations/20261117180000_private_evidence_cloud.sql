@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS public.incidents (
 
 CREATE INDEX IF NOT EXISTS idx_incidents_owner_created ON public.incidents(owner_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_incidents_owner_active ON public.incidents(owner_id) WHERE deleted_at IS NULL;
+ALTER TABLE public.incidents ADD CONSTRAINT uq_incidents_owner_id UNIQUE (owner_id, id);
 
 -- ==============================================================================
 -- 4. EVIDENCE DOSSIERS (COMPLAINT PACKAGES)
@@ -80,7 +81,7 @@ CREATE INDEX IF NOT EXISTS idx_dossiers_owner ON public.evidence_dossiers(owner_
 CREATE TABLE IF NOT EXISTS public.attachment_metadata (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    incident_id UUID NOT NULL REFERENCES public.incidents(id) ON DELETE CASCADE,
+    incident_id UUID NOT NULL,
     storage_path TEXT NOT NULL UNIQUE,
     original_filename TEXT NOT NULL,
     file_type TEXT NOT NULL CHECK (file_type IN ('receipt', 'debit_screenshot', 'ussd_error', 'other')),
@@ -89,7 +90,9 @@ CREATE TABLE IF NOT EXISTS public.attachment_metadata (
     sha256_hash TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'quarantined' CHECK (status IN ('reserved', 'quarantined', 'clean', 'rejected', 'deleting')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    scanned_at TIMESTAMPTZ NULL
+    scanned_at TIMESTAMPTZ NULL,
+    CONSTRAINT fk_attachment_owner_incident FOREIGN KEY (owner_id, incident_id)
+      REFERENCES public.incidents(owner_id, id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_attachments_incident ON public.attachment_metadata(incident_id);
@@ -137,6 +140,10 @@ ALTER TABLE public.incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.evidence_dossiers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attachment_metadata ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sync_operations ENABLE ROW LEVEL SECURITY;
+-- The current server sync path does not rely on this ledger. Keep it
+-- inaccessible to browser-authenticated users until a reviewed transaction
+-- protocol owns its writes.
+REVOKE ALL ON public.sync_operations FROM anon, authenticated;
 ALTER TABLE public.consent_records ENABLE ROW LEVEL SECURITY;
 
 -- Subscribers policies
@@ -146,12 +153,16 @@ CREATE POLICY subscribers_select_own ON public.subscribers
 
 CREATE POLICY subscribers_insert_own ON public.subscribers
     FOR INSERT TO authenticated
-    WITH CHECK (auth.uid() = id);
+    WITH CHECK (auth.uid() = id AND recovery_mode = 'none');
 
 CREATE POLICY subscribers_update_own ON public.subscribers
     FOR UPDATE TO authenticated
     USING (auth.uid() = id)
-    WITH CHECK (auth.uid() = id);
+    WITH CHECK (auth.uid() = id AND recovery_mode = 'none');
+-- Recovery state cannot be self-asserted through PostgREST. A separately verified
+-- privileged confirmation workflow is required before email_linked can be set.
+REVOKE UPDATE ON public.subscribers FROM authenticated;
+REVOKE INSERT, DELETE ON public.subscribers FROM authenticated;
 
 CREATE POLICY subscribers_delete_own ON public.subscribers
     FOR DELETE TO authenticated
@@ -200,12 +211,14 @@ CREATE POLICY attachments_select_own ON public.attachment_metadata
 
 CREATE POLICY attachments_insert_own ON public.attachment_metadata
     FOR INSERT TO authenticated
-    WITH CHECK (auth.uid() = owner_id);
+    WITH CHECK (auth.uid() = owner_id AND status = 'reserved' AND scanned_at IS NULL);
 
 CREATE POLICY attachments_update_own ON public.attachment_metadata
     FOR UPDATE TO authenticated
     USING (auth.uid() = owner_id)
     WITH CHECK (auth.uid() = owner_id);
+-- A subscriber must never assert that unscanned content is clean.
+REVOKE UPDATE ON public.attachment_metadata FROM authenticated;
 
 CREATE POLICY attachments_delete_own ON public.attachment_metadata
     FOR DELETE TO authenticated
@@ -251,27 +264,8 @@ ON CONFLICT (id) DO UPDATE SET
     file_size_limit = 5242880,
     allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'application/pdf'];
 
--- Storage RLS: Owner-isolated folder hierarchy (evidence-attachments/{owner_id}/*)
-CREATE POLICY storage_select_own_attachments ON storage.objects
-    FOR SELECT TO authenticated
-    USING (
-        bucket_id = 'evidence-attachments'
-        AND (storage.foldername(name))[1] = auth.uid()::text
-    );
-
-CREATE POLICY storage_insert_own_attachments ON storage.objects
-    FOR INSERT TO authenticated
-    WITH CHECK (
-        bucket_id = 'evidence-attachments'
-        AND (storage.foldername(name))[1] = auth.uid()::text
-    );
-
-CREATE POLICY storage_delete_own_attachments ON storage.objects
-    FOR DELETE TO authenticated
-    USING (
-        bucket_id = 'evidence-attachments'
-        AND (storage.foldername(name))[1] = auth.uid()::text
-    );
+-- No authenticated storage.objects policies are granted in this migration.
+-- Upload, scanning, download and deletion require a separate reviewed pipeline.
 
 -- ==============================================================================
 -- 10. AUTH TRIGGER: AUTO-PROVISION SUBSCRIBER RECORD
@@ -284,7 +278,7 @@ BEGIN
     ON CONFLICT (id) DO NOTHING;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created

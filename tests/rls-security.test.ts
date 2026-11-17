@@ -47,17 +47,17 @@ describe("Row Level Security (RLS) and Tenant Isolation", () => {
     expect(migrationSql).toContain("auth.uid() = owner_id");
   });
 
-  it("verifies private evidence-attachments storage bucket is marked private with strict RLS", () => {
+  it("keeps private attachment objects inaccessible to browser roles until scanning exists", () => {
     expect(migrationSql).toContain("'evidence-attachments'");
     expect(migrationSql).toContain("public, file_size_limit, allowed_mime_types");
     expect(migrationSql).toContain("false,"); // public = false
     expect(migrationSql).toContain("5242880"); // 5 MiB cap
 
-    // Storage object RLS: checks owner folder hierarchy
-    expect(migrationSql).toContain("storage_select_own_attachments ON storage.objects");
-    expect(migrationSql).toContain("(storage.foldername(name))[1] = auth.uid()::text");
-    expect(migrationSql).toContain("storage_insert_own_attachments ON storage.objects");
-    expect(migrationSql).toContain("storage_delete_own_attachments ON storage.objects");
+    expect(migrationSql).not.toContain("CREATE POLICY storage_select_own_attachments");
+    expect(migrationSql).not.toContain("CREATE POLICY storage_insert_own_attachments");
+    expect(migrationSql).not.toContain("CREATE POLICY storage_delete_own_attachments");
+    expect(migrationSql).toContain("REVOKE UPDATE ON public.attachment_metadata FROM authenticated");
+    expect(migrationSql).toContain("FOREIGN KEY (owner_id, incident_id)");
   });
 
   it("simulates cross-user isolation: User A cannot read or mutate User B records", () => {

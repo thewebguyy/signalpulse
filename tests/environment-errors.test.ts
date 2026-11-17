@@ -13,6 +13,9 @@ describe("environment fails closed", () => {
     expect(() => parseEnvironment(input)).toThrow();
     try { parseEnvironment(input); } catch (error) { expect(String(error)).not.toContain("do-not-leak"); }
   });
+  it("rejects privileged keys even when cloud preview mode is selected", () => {
+    expect(() => parseEnvironment({ SIGNALPULSE_DATA_MODE: "cloud_preview", SUPABASE_SERVICE_ROLE_KEY: "secret" })).toThrow("Privileged");
+  });
 });
 describe("safe API error envelopes", () => {
   const codes = Object.keys(errorStatus).filter((code) => code !== "operation_in_progress") as Exclude<ErrorCode, "operation_in_progress">[];

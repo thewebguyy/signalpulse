@@ -363,7 +363,7 @@ describe("localStorage simulation and edge-case error handling", () => {
     expect(diagPopulated.corruptedCount).toBe(0);
   });
 
-  it("detects corrupted and malformed records and purges unreadable entries while preserving valid ones", () => {
+  it("preserves mixed readable and unreadable records during save, delete and purge requests", () => {
     const validIncident: Incident = {
       id: "00000000-0000-4000-8000-000000000009",
       client_record_id: "00000000-0000-4000-8000-000000000010",
@@ -397,21 +397,23 @@ describe("localStorage simulation and edge-case error handling", () => {
     expect(diagBefore.corruptedCount).toBe(2);
     expect(diagBefore.isMalformed).toBe(false);
 
-    // Run purge
+    expect(saveLocalIncident(validIncident).success).toBe(false);
+    expect(deleteLocalIncident(validIncident.id).success).toBe(false);
     const purgeRes = purgeCorruptedIncidents();
-    expect(purgeRes.success).toBe(true);
+    expect(purgeRes.success).toBe(false);
 
     const diagAfter = getStorageDiagnostics();
-    expect(diagAfter.rawCount).toBe(1);
+    expect(diagAfter.rawCount).toBe(3);
     expect(diagAfter.validCount).toBe(1);
-    expect(diagAfter.corruptedCount).toBe(0);
+    expect(diagAfter.corruptedCount).toBe(2);
+    expect(mockStorage["signalpulse_local_incidents_v0.1"]).toBe(JSON.stringify(mixedEntries));
 
     const remaining = getLocalIncidents();
     expect(remaining).toHaveLength(1);
     expect(remaining[0]?.id).toBe("00000000-0000-4000-8000-000000000009");
   });
 
-  it("handles malformed non-JSON strings gracefully in diagnostics and purge", () => {
+  it("preserves malformed non-JSON strings during attempted cleanup", () => {
     mockStorage["signalpulse_local_incidents_v0.1"] = "MALFORMED_JSON_STRING_{{{";
 
     const diag = getStorageDiagnostics();
@@ -420,11 +422,12 @@ describe("localStorage simulation and edge-case error handling", () => {
     expect(diag.validCount).toBe(0);
 
     const purgeRes = purgeCorruptedIncidents();
-    expect(purgeRes.success).toBe(true);
+    expect(purgeRes.success).toBe(false);
 
     const diagCleaned = getStorageDiagnostics();
-    expect(diagCleaned.isMalformed).toBe(false);
+    expect(diagCleaned.isMalformed).toBe(true);
     expect(diagCleaned.rawCount).toBe(0);
-    expect(diagCleaned.corruptedCount).toBe(0);
+    expect(diagCleaned.corruptedCount).toBe(1);
+    expect(mockStorage["signalpulse_local_incidents_v0.1"]).toBe("MALFORMED_JSON_STRING_{{{");
   });
 });

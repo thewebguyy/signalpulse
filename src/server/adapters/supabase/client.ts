@@ -6,7 +6,7 @@ import { getServerEnvironment } from "@/config/server";
 export async function createSupabaseServerClient() {
   const env = getServerEnvironment();
 
-  if (env.SIGNALPULSE_DATA_MODE !== "cloud_preview" || !env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (env.SIGNALPULSE_DATA_MODE !== "cloud_preview" || env.NEXT_PUBLIC_ENABLE_CLOUD_BACKUP !== "true" || !env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return null;
   }
 

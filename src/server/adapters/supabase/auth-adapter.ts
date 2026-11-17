@@ -3,7 +3,6 @@ import type { AuthenticationPort } from "@/modules/auth/port";
 import type { Session, GuestCreate } from "@/contracts/session";
 import type { LinkRecoveryRequest } from "@/contracts/auth";
 import { createSupabaseServerClient } from "./client";
-import { createSyntheticFixtures } from "@/fixtures/synthetic";
 
 export class SupabaseAuthAdapter implements AuthenticationPort {
   async readSession(): Promise<Session> {
@@ -18,8 +17,8 @@ export class SupabaseAuthAdapter implements AuthenticationPort {
       };
     }
 
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error || !session?.user) {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
       return {
         state: "signed_out",
         owner_id: null,
@@ -29,17 +28,20 @@ export class SupabaseAuthAdapter implements AuthenticationPort {
     }
 
     // Check subscriber record to determine recovery mode
-    const { data: subscriber } = await supabase
+    const { data: subscriber, error: profileError } = await supabase
       .from("subscribers")
-      .select("recovery_mode")
-      .eq("id", session.user.id)
+      .select("recovery_mode, status")
+      .eq("id", user.id)
       .single();
+    if (profileError || !subscriber || subscriber.status !== "active") {
+      throw new Error("Guest profile unavailable or inactive.");
+    }
 
     const recoveryMode = (subscriber?.recovery_mode as "none" | "email_linked" | "passkey") ?? "none";
 
     return {
       state: "active_guest",
-      owner_id: session.user.id,
+      owner_id: user.id,
       recovery_mode: recoveryMode,
       csrf_token: "csrf-" + crypto.randomUUID().slice(0, 8),
     };
@@ -52,29 +54,18 @@ export class SupabaseAuthAdapter implements AuthenticationPort {
 
     const supabase = await createSupabaseServerClient();
     if (!supabase) {
-      // In synthetic mode, return synthetic active guest fixture
-      const fixture = createSyntheticFixtures().session;
-      return {
-        state: "active_guest",
-        owner_id: "00000000-0000-4000-8000-000000000001",
-        recovery_mode: "none",
-        csrf_token: fixture.csrf_token,
-      };
+      throw new Error("Cloud guest sessions are disabled in synthetic mode.");
     }
 
     const { data, error } = await supabase.auth.signInAnonymously();
     if (error || !data.user) {
-      throw new Error("Failed to initialize private guest session: " + (error?.message ?? "unknown error"));
+      throw new Error("Failed to initialize private guest session.");
     }
 
-    // Auto-create or ensure subscriber profile exists
-    await supabase.from("subscribers").upsert({
-      id: data.user.id,
-      status: "active",
-      recovery_mode: "none",
-      backup_enrolled: true,
-      updated_at: new Date().toISOString(),
-    });
+    // The auth trigger provisions the profile; clients cannot set recovery state.
+    const { data: profile, error: profileError } = await supabase.from("subscribers")
+      .select("id").eq("id", data.user.id).single();
+    if (profileError || !profile) throw new Error("Private guest profile could not be confirmed.");
 
     return {
       state: "active_guest",
@@ -85,41 +76,17 @@ export class SupabaseAuthAdapter implements AuthenticationPort {
   }
 
   async linkRecovery(request: LinkRecoveryRequest): Promise<{ success: boolean; recovery_mode: string }> {
-    const supabase = await createSupabaseServerClient();
-    if (!supabase) {
-      return { success: true, recovery_mode: "email_linked" };
-    }
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      throw new Error("Active session required to link recovery method.");
-    }
-
-    // Update user identity with email for passwordless/OTP recovery
-    const { error: updateError } = await supabase.auth.updateUser({
-      email: request.email,
-    });
-
-    if (updateError) {
-      throw new Error("Failed to register recovery email: " + updateError.message);
-    }
-
-    // Update subscriber profile
-    await supabase
-      .from("subscribers")
-      .update({
-        recovery_mode: "email_linked",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
-
-    return { success: true, recovery_mode: "email_linked" };
+    // No confirmed account-link and lost-device recovery flow has been verified.
+    // Never send an email and call the account recoverable prematurely.
+    void request;
+    throw new Error("Recovery linking is not yet available.");
   }
 
   async logout(): Promise<void> {
     const supabase = await createSupabaseServerClient();
     if (supabase) {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw new Error("Could not revoke guest session.");
     }
   }
 }

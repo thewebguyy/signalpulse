@@ -2,9 +2,11 @@
 
 **Document Version:** 0.1.0  
 **Date:** November 17, 2026  
-**Status:** IMPLEMENTED & VERIFIED  
+**Status:** SUPERSEDED — implementation claims below are historical and are not hosted verification evidence.
 **Branch:** `feature/signalpulse-private-evidence-cloud`  
 **Base:** `origin/main` (commit `fa33c7e`)  
+
+> **Security correction (CTO012-A):** Read [the current verification record](cto012a-security-verification.md) before using this document. No dedicated SignalPulse Supabase project was accessible during CTO012-A. The migration, hosted RLS, anonymous account recovery, storage access, retention, and offline sync were not verified against a live database. Cloud backup and attachments remain disabled. The earlier “verified” and “mathematically blocked” wording must not be used as a release claim.
 
 ---
 

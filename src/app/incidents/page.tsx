@@ -10,7 +10,6 @@ import {
   saveLocalIncident,
   deleteLocalIncident,
   useStorageDiagnostics,
-  purgeCorruptedIncidents,
 } from "@/components/local-store";
 import { INCIDENT_CATEGORIES } from "@/components/constants";
 import type { Operator, IncidentCategory } from "@/contracts/domain";
@@ -59,8 +58,14 @@ export default function IncidentsPage() {
     setStorageError(null);
 
     const now = new Date().toISOString();
-    const targetId = editingId ?? (`00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, "0")}` as const);
-    const targetRecordId = `00000000-0000-4000-8000-${(Date.now() + 1).toString(16).padStart(12, "0")}` as const;
+    const existing = editingId ? incidents.find((item) => item.id === editingId) : null;
+    if (editingId && !existing) {
+      setIsSubmitting(false);
+      setStorageError("The report being edited is no longer available.");
+      return;
+    }
+    const targetId = existing?.id ?? crypto.randomUUID();
+    const targetRecordId = existing?.client_record_id ?? crypto.randomUUID();
 
     const formattedOccurred = occurredAt ? new Date(occurredAt).toISOString() : now;
 
@@ -68,7 +73,7 @@ export default function IncidentsPage() {
       id: targetId,
       client_record_id: targetRecordId,
       provenance: "user_reported",
-      revision: editingId ? 2 : 1,
+      revision: existing ? existing.revision + 1 : 1,
       fields: {
         operator,
         area_id: areaId || null,
@@ -78,9 +83,9 @@ export default function IncidentsPage() {
         complaint_reference: complaintRef.trim() || null,
         complaint_contacted_at: complaintContactedAt ? new Date(complaintContactedAt).toISOString() : null,
       },
-      created_at: now,
+      created_at: existing?.created_at ?? now,
       updated_at: now,
-      expires_at: new Date(Date.now() + 365 * 86400_000).toISOString(),
+      expires_at: existing?.expires_at ?? new Date(Date.now() + 365 * 86400_000).toISOString(),
     };
 
     const writeResult = saveLocalIncident(record);
@@ -141,7 +146,7 @@ export default function IncidentsPage() {
 
   const handleDelete = (id: string) => {
     const success = deleteLocalIncident(id);
-    if (success) {
+    if (success.success) {
       if (editingId === id) handleCancelEdit();
       if (syncState.backupEnrolled) {
         void triggerSync();
@@ -152,17 +157,9 @@ export default function IncidentsPage() {
         title: "Report removed",
         message: "The record was removed from your saved reports.",
       });
+    } else {
+      setToast({ id: "delete-failed", type: "warning", title: "Report not removed", message: success.message });
     }
-  };
-
-  const handlePurgeCorrupted = () => {
-    purgeCorruptedIncidents();
-    setToast({
-      id: "purged-data",
-      type: "info",
-      title: "Storage cleaned",
-      message: "Unreadable records removed. Valid reports remain safe.",
-    });
   };
 
   return (
@@ -193,7 +190,7 @@ export default function IncidentsPage() {
         </div>
       )}
 
-      {/* Corrupted Records Warning & Clean-up Action */}
+      {/* Keep raw local evidence intact until a recovery path is reviewed. */}
       {storageDiagnostics.corruptedCount > 0 && (
         <div role="status" className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs sm:text-sm text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -201,16 +198,9 @@ export default function IncidentsPage() {
               {storageDiagnostics.corruptedCount} unreadable {storageDiagnostics.corruptedCount === 1 ? "record was" : "records were"} found
             </p>
             <p className="text-xs text-amber-800">
-              Older or incomplete drafts are taking up space. Your valid reports are safe.
+              The original stored data has been preserved. Editing and deletion are paused to avoid losing unreadable reports.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handlePurgeCorrupted}
-            className="self-start sm:self-auto px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-900 transition-colors"
-          >
-            Clean up unreadable data
-          </button>
         </div>
       )}
 

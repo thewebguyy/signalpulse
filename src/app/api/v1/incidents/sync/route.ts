@@ -3,11 +3,16 @@ import { SupabaseSyncAdapter } from "@/server/adapters/supabase/sync-adapter";
 import { syncBatchRequestSchema } from "@/contracts/sync";
 import { createFailure } from "@/server/errors";
 import { CONTRACT_VERSION } from "@/contracts/version";
+import { isSameOriginMutation } from "@/server/request-origin";
 
 const syncAdapter = new SupabaseSyncAdapter();
 
 export async function POST(req: Request) {
   const requestId = crypto.randomUUID();
+  if (!isSameOriginMutation(req)) {
+    const failure = createFailure("request_forbidden", requestId);
+    return NextResponse.json(failure.body, { status: failure.status });
+  }
   try {
     const body = await req.json();
     const parsed = syncBatchRequestSchema.safeParse(body);
