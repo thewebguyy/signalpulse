@@ -24,7 +24,7 @@ export function AreaSelector({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="w-full min-h-[48px] rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full min-h-[48px] rounded-md border border-slate-300 bg-white px-3 py-2 text-base sm:text-sm text-slate-900 focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] disabled:cursor-not-allowed disabled:opacity-60"
       >
         <option value="">Choose your area in Lagos...</option>
         {LAGOS_LGAS.map((lga) => (
