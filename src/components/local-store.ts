@@ -32,7 +32,7 @@ export function subscribeStore(listener: () => void) {
   };
 }
 
-let cachedIncidentsRaw: string | null = null;
+let cachedIncidentsRaw: string | null | undefined = undefined;
 let cachedIncidents: Incident[] = [];
 let currentDiagnostics: StorageDiagnostics = {
   isAvailable: false,
@@ -315,7 +315,7 @@ export function saveLocalMeasurement(_measurement: Measurement): StorageWriteRes
 const emptyIncidents: Incident[] = [];
 const emptyMeasurements: Measurement[] = [];
 const defaultDiagnostics: StorageDiagnostics = {
-  isAvailable: false,
+  isAvailable: true,
   rawCount: 0,
   validCount: 0,
   corruptedCount: 0,
