@@ -272,7 +272,7 @@ export default function IncidentsPage() {
             required
             value={occurredAt}
             onChange={(e) => setOccurredAt(e.target.value)}
-            className="w-full min-h-[48px] rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+            className="w-full min-h-[48px] rounded-md border border-slate-300 bg-white px-3 py-2 text-base sm:text-sm text-slate-900"
           />
         </div>
 
@@ -297,7 +297,7 @@ export default function IncidentsPage() {
             value={narrative}
             onChange={(e) => setNarrative(e.target.value)}
             placeholder="e.g. Tried calling 0803... at 2:15 PM in Ikeja, call cut off after 10 seconds."
-            className="w-full rounded-md border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]"
+            className="w-full rounded-md border border-slate-300 bg-white p-3 text-base sm:text-sm text-slate-900 focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]"
           />
         </div>
 
@@ -323,7 +323,7 @@ export default function IncidentsPage() {
                 value={complaintRef}
                 onChange={(e) => setComplaintRef(e.target.value)}
                 placeholder="e.g. MTN-CAS-2026-99120"
-                className="w-full min-h-[44px] rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                className="w-full min-h-[44px] rounded-md border border-slate-300 bg-white px-3 py-2 text-base sm:text-sm text-slate-900"
               />
             </div>
             <div>
@@ -335,7 +335,7 @@ export default function IncidentsPage() {
                 id="complaint-date"
                 value={complaintContactedAt}
                 onChange={(e) => setComplaintContactedAt(e.target.value)}
-                className="w-full min-h-[44px] rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                className="w-full min-h-[44px] rounded-md border border-slate-300 bg-white px-3 py-2 text-base sm:text-sm text-slate-900"
               />
             </div>
           </div>

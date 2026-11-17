@@ -330,7 +330,7 @@ export default function EvidencePage() {
           rows={3}
           value={complaintText}
           onChange={(e) => setComplaintText(e.target.value)}
-          className="w-full rounded-md border border-slate-300 bg-white p-3 text-sm text-slate-900 focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]"
+          className="w-full rounded-md border border-slate-300 bg-white p-3 text-base sm:text-sm text-slate-900 focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]"
         />
       </section>
 
