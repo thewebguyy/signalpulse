@@ -102,98 +102,96 @@ export default function EvidencePage() {
       })),
       assets: [],
       limitations: [
-        "Personal record assembled by the subscriber on SignalPulse NG.",
-        "Includes reports saved by the user; not independently verified by a network or regulator.",
-        "This summary is not an official ruling from your mobile network or the NCC.",
-        "If escalating to the NCC, contact your mobile network first and keep your ticket number.",
+        "This export contains user-assembled private records and observations.",
+        "It does not constitute an official carrier finding, proof of fraud, or legal guarantee of compensation.",
       ],
     };
 
     const parseResult = exportDocumentSchema.safeParse(candidateDoc);
     if (!parseResult.success) {
-      const issue = parseResult.error.issues[0]?.message ?? "Please check your selected reports and complaint note.";
       setToast({
-        id: "err-validation",
+        id: "err-schema",
         type: "warning",
-        title: "Couldn't create file",
-        message: issue,
+        title: "Could not create file",
+        message: "The export file couldn't be created. Check that all fields are filled properly.",
       });
       return;
     }
 
     try {
-      const blob = new Blob([JSON.stringify(parseResult.data, null, 2)], {
-        type: "application/json",
-      });
+      const jsonStr = JSON.stringify(parseResult.data, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `signalpulse-complaint-${new Date().toISOString().slice(0, 10)}.json`;
+      link.download = `signalpulse-evidence-${now.slice(0, 10)}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
       setToast({
-        id: "json-exported",
+        id: "exported-json",
         type: "success",
-        title: "File downloaded",
-        message: "Your complaint file has been saved to this device.",
+        title: "Download complete",
+        message: `Saved ${selectedIncidents.length} ${selectedIncidents.length === 1 ? "report" : "reports"} to your device.`,
       });
     } catch {
       setToast({
         id: "err-download",
         type: "warning",
         title: "Download failed",
-        message: "Your browser couldn't download the file. Try Print or save PDF instead.",
+        message: "Your browser couldn't save the file. Please try again or use the print option.",
       });
     }
   };
 
   const handlePrint = () => {
-    if (typeof window !== "undefined") {
-      window.print();
+    if (selectedIncidents.length === 0) {
+      setToast({
+        id: "err-print-empty",
+        type: "warning",
+        title: "No reports selected",
+        message: "Pick at least 1 saved report before printing.",
+      });
+      return;
     }
+
+    if (!complaintText.trim()) {
+      setToast({
+        id: "err-print-text",
+        type: "warning",
+        title: "Write what you want done",
+        message: "Add a short note explaining what you want before printing.",
+      });
+      return;
+    }
+
+    window.print();
   };
 
   return (
-    <main id="main" className="mx-auto max-w-3xl space-y-8 px-4 sm:px-6 py-8 sm:py-12">
-      {/* Title */}
-      <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+    <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+      {/* Page Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           Prepare a Complaint
         </h1>
-        <p className="text-sm sm:text-base leading-relaxed text-slate-600">
-          Pick the reports you want to include, write what you&apos;re asking for, and download or print your summary.
+        <p className="text-sm text-slate-600">
+          Put together your saved reports and receipts into a clean summary to show your network or the NCC.
         </p>
       </div>
 
-      {/* Storage Access Denial Notice */}
+      {/* Storage Degradation Warning */}
       {!storageDiagnostics.isAvailable && (
-        <div role="status" aria-live="polite" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs sm:text-sm text-amber-900 flex items-start gap-2.5">
-          <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
-          <div>
-            <strong className="font-semibold">Browser storage is turned off: </strong>
-            Saved reports can&apos;t be loaded in this private window.
-          </div>
-        </div>
-      )}
-
-      {/* Corrupted Records Notice */}
-      {storageDiagnostics.corruptedCount > 0 && (
-        <div role="status" aria-live="polite" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs sm:text-sm text-amber-950 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-start gap-2.5">
-            <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              {storageDiagnostics.corruptedCount} unreadable item was skipped.
-            </div>
-          </div>
-          <Link
-            href="/incidents"
-            className="text-xs font-semibold text-[#064E3B] hover:underline"
-          >
-            Clean up in My Reports
-          </Link>
+        <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs sm:text-sm text-amber-900 space-y-1">
+          <p className="font-bold flex items-center gap-1.5 text-amber-950">
+            <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0" aria-hidden="true" />
+            <span>Browser storage is turned off</span>
+          </p>
+          <p className="leading-relaxed">
+            Download your JSON file or print your summary now. Once you close this window, these records will disappear from this phone.
+          </p>
         </div>
       )}
 
@@ -333,6 +331,8 @@ export default function EvidencePage() {
           className="w-full rounded-md border border-slate-300 bg-white p-3 text-base sm:text-sm text-slate-900 focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]"
         />
       </section>
+
+      <p className="text-xs text-slate-600">File attachments are unavailable in this preview. Keep original screenshots and receipts on your device; exported evidence contains text reports only.</p>
 
       {/* 3. Printable Summary Preview */}
       <section aria-labelledby="preview-title" className="rounded-xl border border-slate-300 bg-white p-6 sm:p-8 space-y-6 print-expand">

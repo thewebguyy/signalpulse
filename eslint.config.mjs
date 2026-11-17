@@ -5,7 +5,7 @@ import nextPlugin from '@next/eslint-plugin-next';
 import hooks from 'eslint-plugin-react-hooks';
 
 export default defineConfig([
-  globalIgnores(['.next/**', 'coverage/**', 'next-env.d.ts', '.npm-cache/**']),
+  globalIgnores(['.next/**', 'coverage/**', 'next-env.d.ts', '.npm-cache/**', 'showcase-video/**']),
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { languageOptions: { globals: { process: 'readonly', console: 'readonly', URL: 'readonly' } } },

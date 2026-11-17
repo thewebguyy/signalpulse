@@ -1,4 +1,14 @@
-import type { Session } from "@/contracts/session";
+import type { Session, GuestCreate } from "@/contracts/session";
+import type { LinkRecoveryRequest } from "@/contracts/auth";
 
-/** Future trusted adapter validates cookies/revocation. No implementation is provided. */
-export interface AuthenticationPort { readSession(): Promise<Session> }
+/**
+ * Authentication and session boundary.
+ * Manages guest identity, anonymous sessions, recovery linking, and logout.
+ */
+export interface AuthenticationPort {
+  readSession(): Promise<Session>;
+  createGuest(request: GuestCreate): Promise<Session>;
+  linkRecovery(request: LinkRecoveryRequest): Promise<{ success: boolean; recovery_mode: string }>;
+  logout(): Promise<void>;
+  deleteAccount?(): Promise<void>;
+}

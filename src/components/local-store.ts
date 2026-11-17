@@ -186,7 +186,13 @@ export function saveLocalIncident(incident: Incident): StorageWriteResult {
 
   try {
     const current = getLocalIncidents();
-    const updated = [validation.data, ...current.filter((i) => i.id !== incident.id)].slice(0, 50);
+    if (currentDiagnostics.isMalformed || currentDiagnostics.corruptedCount > 0) {
+      return { success: false, error: "validation_error", message: "Stored reports contain unreadable data. Export the original browser data before changing reports." };
+    }
+    const updated = [validation.data, ...current.filter((i) => i.id !== incident.id)];
+    if (updated.length > 50) {
+      return { success: false, error: "quota_exceeded", message: "This device already holds 50 reports. Export important reports before removing any." };
+    }
     const serialized = JSON.stringify(updated);
     window.localStorage.setItem(INCIDENTS_KEY, serialized);
     cachedIncidentsRaw = serialized;
@@ -240,6 +246,9 @@ export function deleteLocalIncident(id: string): StorageWriteResult {
 
   try {
     const current = getLocalIncidents();
+    if (currentDiagnostics.isMalformed || currentDiagnostics.corruptedCount > 0) {
+      return { success: false, error: "validation_error", message: "Stored reports contain unreadable data. Export the original browser data before changing reports." };
+    }
     const updated = current.filter((i) => i.id !== id);
     const serialized = JSON.stringify(updated);
     window.localStorage.setItem(INCIDENTS_KEY, serialized);
@@ -267,36 +276,7 @@ export function deleteLocalIncident(id: string): StorageWriteResult {
  * Purges unreadable or corrupted records from localStorage, keeping only verified valid records.
  */
 export function purgeCorruptedIncidents(): StorageWriteResult {
-  if (typeof window === "undefined" || !isLocalStorageAvailable()) {
-    return {
-      success: false,
-      error: "storage_unavailable",
-      message: "Browser local storage is not available.",
-    };
-  }
-
-  try {
-    const valid = getLocalIncidents();
-    const serialized = JSON.stringify(valid);
-    window.localStorage.setItem(INCIDENTS_KEY, serialized);
-    cachedIncidentsRaw = serialized;
-    cachedIncidents = valid;
-    currentDiagnostics = {
-      isAvailable: true,
-      rawCount: valid.length,
-      validCount: valid.length,
-      corruptedCount: 0,
-      isMalformed: false,
-    };
-    emitChange();
-    return { success: true };
-  } catch {
-    return {
-      success: false,
-      error: "write_failed",
-      message: "Failed to clean corrupted records.",
-    };
-  }
+  return { success: false, error: "validation_error", message: "Unreadable reports were preserved. Export the original browser data before any repair." };
 }
 
 /**
