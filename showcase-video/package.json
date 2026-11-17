@@ -1,0 +1,14 @@
+{
+  "name": "signalpulse-showcase-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated video automation, browser recording, and motion rendering project for SignalPulse NG",
+  "scripts": {
+    "record": "node record-flow.mjs",
+    "render": "node render-video.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.40.0"
+  }
+}
