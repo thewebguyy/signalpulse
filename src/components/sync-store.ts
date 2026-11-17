@@ -12,6 +12,7 @@ export interface SyncRecordMeta {
 }
 
 export interface SyncEngineState {
+  ownerId: string | null;
   backupEnrolled: boolean;
   recoveryMode: "none" | "email_linked";
   isOnline: boolean;
@@ -23,6 +24,7 @@ export interface SyncEngineState {
 const SYNC_STATE_KEY = "signalpulse_sync_state_v0.1";
 
 let syncState: SyncEngineState = {
+  ownerId: null,
   backupEnrolled: false,
   recoveryMode: "none",
   isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
@@ -115,10 +117,36 @@ async function checkRemoteSession(): Promise<void> {
     if (!res.ok) return;
     const body = await res.json();
     if (body?.data?.state === "active_guest") {
-      const records = Object.fromEntries(Object.entries(syncState.records).map(([id, meta]) =>
-        [id, meta.status === "synced" ? { ...meta, status: "queued" as const, lastSyncedAt: null, lastError: "Rechecking cloud owner and record status." } : meta]));
+      const newOwnerId = body.data.owner_id ?? null;
+      const isOwnerSwitch = syncState.ownerId !== null && syncState.ownerId !== newOwnerId;
+
+      let records = syncState.records;
+      if (isOwnerSwitch) {
+        records = Object.fromEntries(
+          Object.entries(syncState.records).map(([id, meta]) => [
+            id,
+            {
+              ...meta,
+              status: "queued" as const,
+              lastSyncedAt: null,
+              lastError: "Switched account owner. Re-verifying cloud vault for new subscriber.",
+            },
+          ])
+        );
+      } else {
+        records = Object.fromEntries(
+          Object.entries(syncState.records).map(([id, meta]) => [
+            id,
+            meta.status === "synced"
+              ? { ...meta, status: "queued" as const, lastSyncedAt: null, lastError: "Rechecking cloud owner and record status." }
+              : meta,
+          ])
+        );
+      }
+
       syncState = {
         ...syncState,
+        ownerId: newOwnerId,
         backupEnrolled: true,
         recoveryMode: body.data.recovery_mode === "email_linked" ? "email_linked" : "none",
         records,
@@ -126,9 +154,15 @@ async function checkRemoteSession(): Promise<void> {
       persistSyncState();
       emitSyncChange();
     } else {
-      const records = Object.fromEntries(Object.entries(syncState.records).map(([id, meta]) =>
-        [id, meta.status === "synced" ? { ...meta, status: "failed" as const, lastSyncedAt: null, lastError: "Cloud session is no longer verified." } : meta]));
-      syncState = { ...syncState, backupEnrolled: false, recoveryMode: "none", records };
+      const records = Object.fromEntries(
+        Object.entries(syncState.records).map(([id, meta]) => [
+          id,
+          meta.status === "synced"
+            ? { ...meta, status: "failed" as const, lastSyncedAt: null, lastError: "Cloud session is no longer verified." }
+            : meta,
+        ])
+      );
+      syncState = { ...syncState, ownerId: null, backupEnrolled: false, recoveryMode: "none", records };
       persistSyncState();
       emitSyncChange();
     }
@@ -151,6 +185,9 @@ export async function enrollInCloudBackup(acceptLimitations: boolean): Promise<b
       return false;
     }
 
+    const body = await res.json();
+    const newOwnerId = body?.data?.owner_id ?? null;
+
     const incidents = getLocalIncidents();
     const updatedRecords = { ...syncState.records };
     for (const incident of incidents) {
@@ -166,6 +203,7 @@ export async function enrollInCloudBackup(acceptLimitations: boolean): Promise<b
 
     syncState = {
       ...syncState,
+      ownerId: newOwnerId,
       backupEnrolled: true,
       records: updatedRecords,
     };
@@ -193,8 +231,15 @@ export async function linkRecoveryEmail(email: string): Promise<{ success: boole
     }
 
     const body = await res.json();
-    if (body?.data?.success !== true || body.data.recovery_mode !== "email_linked") {
-      return { success: false, message: "Recovery is not yet verified. Keep this device session and your local evidence." };
+    if (body?.data?.success !== true) {
+      return { success: false, message: "Could not link recovery email. Please try again." };
+    }
+
+    if (body.data.recovery_mode !== "email_linked") {
+      return {
+        success: true,
+        message: "Verification email sent. Click the link in your email to activate account recovery. Local evidence remains on your device.",
+      };
     }
 
     syncState = {
@@ -206,6 +251,35 @@ export async function linkRecoveryEmail(email: string): Promise<{ success: boole
     return { success: true, message: "Recovery email linked successfully." };
   } catch {
     return { success: false, message: "Connection error. Please check your internet." };
+  }
+}
+
+export async function deleteCloudAccount(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/v1/session/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirm_delete_all: true }),
+    });
+    if (!res.ok) return false;
+
+    syncState = {
+      ...syncState,
+      ownerId: null,
+      backupEnrolled: false,
+      recoveryMode: "none",
+      records: Object.fromEntries(
+        Object.entries(syncState.records).map(([id, meta]) => [
+          id,
+          { ...meta, status: "local_only" as const, lastSyncedAt: null, lastError: "Cloud account deleted." },
+        ])
+      ),
+    };
+    persistSyncState();
+    emitSyncChange();
+    return true;
+  } catch {
+    return false;
   }
 }
 

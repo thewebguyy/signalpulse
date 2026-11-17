@@ -50,7 +50,8 @@ CREATE TABLE IF NOT EXISTS public.incidents (
     revision INTEGER NOT NULL DEFAULT 1 CHECK (revision >= 1),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '90 days'),
+    -- Retention period remains configurable until explicit founder/privacy approval (NULL = unexpired/retained).
+    expires_at TIMESTAMPTZ NULL,
     deleted_at TIMESTAMPTZ NULL,
     CONSTRAINT uq_incidents_owner_client_record UNIQUE (owner_id, client_record_id)
 );
@@ -70,7 +71,8 @@ CREATE TABLE IF NOT EXISTS public.evidence_dossiers (
     incident_ids UUID[] NOT NULL DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '90 days')
+    -- Retention period remains configurable until explicit founder/privacy approval (NULL = unexpired/retained).
+    expires_at TIMESTAMPTZ NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_dossiers_owner ON public.evidence_dossiers(owner_id);
@@ -284,3 +286,208 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_subscriber();
+
+-- ==============================================================================
+-- 11. RETENTION LIFECYCLE & PURGE MAINTENANCE
+-- ==============================================================================
+-- Purges expired records only when explicitly called with an approved retention threshold.
+-- Retention period remains configurable until explicit founder/privacy approval.
+CREATE OR REPLACE FUNCTION public.purge_expired_records(p_retention_days integer)
+RETURNS TABLE(purged_incidents bigint, purged_attachments bigint, purged_dossiers bigint) AS $$
+DECLARE
+    v_cutoff TIMESTAMPTZ;
+    v_incidents bigint;
+    v_attachments bigint;
+    v_dossiers bigint;
+BEGIN
+    IF p_retention_days IS NULL OR p_retention_days <= 0 THEN
+        RAISE EXCEPTION 'Explicit positive retention threshold required for automated purge.';
+    END IF;
+
+    v_cutoff := now() - (p_retention_days || ' days')::interval;
+
+    -- 1. Purge attachments of expired incidents
+    WITH expired_incidents AS (
+        SELECT id FROM public.incidents WHERE occurred_at < v_cutoff OR (expires_at IS NOT NULL AND expires_at < now())
+    ),
+    deleted_att AS (
+        DELETE FROM public.attachment_metadata
+        WHERE incident_id IN (SELECT id FROM expired_incidents)
+        RETURNING id
+    )
+    SELECT count(*) INTO v_attachments FROM deleted_att;
+
+    -- 2. Purge expired dossiers
+    WITH deleted_dos AS (
+        DELETE FROM public.evidence_dossiers
+        WHERE created_at < v_cutoff OR (expires_at IS NOT NULL AND expires_at < now())
+        RETURNING id
+    )
+    SELECT count(*) INTO v_dossiers FROM deleted_dos;
+
+    -- 3. Purge expired incidents
+    WITH deleted_inc AS (
+        DELETE FROM public.incidents
+        WHERE occurred_at < v_cutoff OR (expires_at IS NOT NULL AND expires_at < now())
+        RETURNING id
+    )
+    SELECT count(*) INTO v_incidents FROM deleted_inc;
+
+    RETURN QUERY SELECT v_incidents, v_attachments, v_dossiers;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- ==============================================================================
+-- 12. ATOMIC BATCH SYNCHRONIZATION FUNCTION
+-- ==============================================================================
+-- Executes batch mutations within a single database transaction.
+-- Enforces idempotency via sync_operations and optimistic revision locks.
+CREATE OR REPLACE FUNCTION public.apply_sync_batch(
+    p_client_mutation_id text,
+    p_incidents jsonb,
+    p_deleted_ids uuid[]
+)
+RETURNS jsonb AS $$
+DECLARE
+    v_owner_id uuid;
+    v_existing_op record;
+    v_item jsonb;
+    v_client_record_id uuid;
+    v_revision int;
+    v_existing record;
+    v_synced_count int := 0;
+    v_failed_count int := 0;
+    v_conflicts jsonb := '[]'::jsonb;
+    v_now timestamptz := now();
+    v_delete_id uuid;
+    v_result jsonb;
+BEGIN
+    v_owner_id := auth.uid();
+    IF v_owner_id IS NULL THEN
+        RAISE EXCEPTION 'Active session required to synchronize evidence with cloud vault.';
+    END IF;
+
+    -- Check idempotency
+    SELECT status, payload INTO v_existing_op
+    FROM public.sync_operations
+    WHERE owner_id = v_owner_id AND client_mutation_id = p_client_mutation_id;
+
+    IF FOUND THEN
+        IF v_existing_op.status = 'completed' THEN
+            RETURN v_existing_op.payload;
+        ELSIF v_existing_op.status = 'pending' THEN
+            RAISE EXCEPTION 'A sync operation with this mutation ID is already in progress.';
+        END IF;
+    END IF;
+
+    -- Record pending operation
+    INSERT INTO public.sync_operations (owner_id, client_mutation_id, operation_type, status, payload)
+    VALUES (v_owner_id, p_client_mutation_id, 'upsert_incident', 'pending', '{}'::jsonb)
+    ON CONFLICT (owner_id, client_mutation_id) DO UPDATE SET status = 'pending';
+
+    -- Process incident mutations
+    FOR v_item IN SELECT * FROM jsonb_array_elements(p_incidents)
+    LOOP
+        v_client_record_id := (v_item->>'client_record_id')::uuid;
+        v_revision := (v_item->>'revision')::int;
+
+        SELECT * INTO v_existing
+        FROM public.incidents
+        WHERE owner_id = v_owner_id AND client_record_id = v_client_record_id;
+
+        IF FOUND THEN
+            IF v_existing.revision > v_revision THEN
+                -- Server copy is newer
+                v_conflicts := v_conflicts || jsonb_build_object(
+                    'id', v_item->>'id',
+                    'reason', 'Server copy has a newer revision (' || v_existing.revision || ' > ' || v_revision || ').',
+                    'server_revision', v_existing.revision,
+                    'client_revision', v_revision
+                );
+            ELSIF v_existing.revision = v_revision THEN
+                IF v_existing.operator = (v_item->'fields'->>'operator') AND
+                   v_existing.category = (v_item->'fields'->>'category') AND
+                   v_existing.narrative = (v_item->'fields'->>'narrative') THEN
+                    -- Idempotent duplicate
+                    v_synced_count := v_synced_count + 1;
+                ELSE
+                    v_conflicts := v_conflicts || jsonb_build_object(
+                        'id', v_item->>'id',
+                        'reason', 'Server copy has divergent changes at identical revision ' || v_existing.revision || '. Local draft preserved.',
+                        'server_revision', v_existing.revision,
+                        'client_revision', v_revision
+                    );
+                END IF;
+            ELSIF v_revision = v_existing.revision + 1 THEN
+                UPDATE public.incidents
+                SET operator = v_item->'fields'->>'operator',
+                    area_id = v_item->'fields'->>'area_id',
+                    category = v_item->'fields'->>'category',
+                    occurred_at = (v_item->'fields'->>'occurred_at')::timestamptz,
+                    narrative = v_item->'fields'->>'narrative',
+                    complaint_reference = v_item->'fields'->>'complaint_reference',
+                    complaint_contacted_at = (v_item->'fields'->>'complaint_contacted_at')::timestamptz,
+                    revision = v_revision,
+                    updated_at = v_now,
+                    deleted_at = NULL
+                WHERE id = v_existing.id AND revision = v_existing.revision;
+
+                IF FOUND THEN
+                    v_synced_count := v_synced_count + 1;
+                ELSE
+                    v_failed_count := v_failed_count + 1;
+                END IF;
+            ELSE
+                v_conflicts := v_conflicts || jsonb_build_object(
+                    'id', v_item->>'id',
+                    'reason', 'Revision sequence gap: expected revision ' || (v_existing.revision + 1) || ', received ' || v_revision || '.',
+                    'server_revision', v_existing.revision,
+                    'client_revision', v_revision
+                );
+            END IF;
+        ELSE
+            INSERT INTO public.incidents (
+                id, owner_id, client_record_id, operator, area_id, category,
+                occurred_at, narrative, complaint_reference, complaint_contacted_at,
+                provenance, revision, created_at, updated_at
+            ) VALUES (
+                (v_item->>'id')::uuid, v_owner_id, v_client_record_id,
+                v_item->'fields'->>'operator', v_item->'fields'->>'area_id', v_item->'fields'->>'category',
+                (v_item->'fields'->>'occurred_at')::timestamptz, v_item->'fields'->>'narrative',
+                v_item->'fields'->>'complaint_reference', (v_item->'fields'->>'complaint_contacted_at')::timestamptz,
+                'user_reported', v_revision,
+                (v_item->>'created_at')::timestamptz, (v_item->>'updated_at')::timestamptz
+            );
+            v_synced_count := v_synced_count + 1;
+        END IF;
+    END LOOP;
+
+    -- Process deletions
+    FOREACH v_delete_id IN ARRAY p_deleted_ids
+    LOOP
+        UPDATE public.incidents
+        SET deleted_at = v_now
+        WHERE id = v_delete_id AND owner_id = v_owner_id;
+
+        IF FOUND THEN
+            v_synced_count := v_synced_count + 1;
+        ELSE
+            v_failed_count := v_failed_count + 1;
+        END IF;
+    END LOOP;
+
+    v_result := jsonb_build_object(
+        'synced_count', v_synced_count,
+        'failed_count', v_failed_count,
+        'conflicts', v_conflicts,
+        'synced_at', v_now
+    );
+
+    -- Update sync_operations record
+    UPDATE public.sync_operations
+    SET status = 'completed', payload = v_result
+    WHERE owner_id = v_owner_id AND client_mutation_id = p_client_mutation_id;
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';

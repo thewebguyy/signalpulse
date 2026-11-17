@@ -27,17 +27,21 @@ export class SupabaseAuthAdapter implements AuthenticationPort {
       };
     }
 
-    // Check subscriber record to determine recovery mode
+    // Check subscriber record to verify active status
     const { data: subscriber, error: profileError } = await supabase
       .from("subscribers")
       .select("recovery_mode, status")
       .eq("id", user.id)
       .single();
+
     if (profileError || !subscriber || subscriber.status !== "active") {
       throw new Error("Guest profile unavailable or inactive.");
     }
 
-    const recoveryMode = (subscriber?.recovery_mode as "none" | "email_linked" | "passkey") ?? "none";
+    // Official Supabase Auth verification: email recovery is ONLY active
+    // when the user has an email AND it has been explicitly confirmed.
+    const isEmailVerified = Boolean(user.email && user.email_confirmed_at);
+    const recoveryMode = isEmailVerified ? "email_linked" : "none";
 
     return {
       state: "active_guest",
@@ -63,9 +67,15 @@ export class SupabaseAuthAdapter implements AuthenticationPort {
     }
 
     // The auth trigger provisions the profile; clients cannot set recovery state.
-    const { data: profile, error: profileError } = await supabase.from("subscribers")
-      .select("id").eq("id", data.user.id).single();
-    if (profileError || !profile) throw new Error("Private guest profile could not be confirmed.");
+    const { data: profile, error: profileError } = await supabase
+      .from("subscribers")
+      .select("id")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error("Private guest profile could not be confirmed.");
+    }
 
     return {
       state: "active_guest",
@@ -88,5 +98,44 @@ export class SupabaseAuthAdapter implements AuthenticationPort {
       const { error } = await supabase.auth.signOut();
       if (error) throw new Error("Could not revoke guest session.");
     }
+  }
+
+  async deleteAccount(): Promise<void> {
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) {
+      throw new Error("Account deletion is disabled in synthetic mode.");
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error("Active session required to delete account.");
+    }
+
+    // 1. Tombstone subscriber: mark status = 'deleting'
+    await supabase.from("subscribers").update({ status: "deleting" }).eq("id", user.id);
+
+    // 2. Fetch and remove all storage objects in evidence-attachments
+    const { data: attachments } = await supabase
+      .from("attachment_metadata")
+      .select("storage_path")
+      .eq("owner_id", user.id);
+
+    if (attachments && attachments.length > 0) {
+      const paths = attachments.map((a) => a.storage_path);
+      await supabase.storage.from("evidence-attachments").remove(paths);
+    }
+
+    // 3. Purge owned database records
+    await supabase.from("attachment_metadata").delete().eq("owner_id", user.id);
+    await supabase.from("evidence_dossiers").delete().eq("owner_id", user.id);
+    await supabase.from("sync_operations").delete().eq("owner_id", user.id);
+    await supabase.from("consent_records").delete().eq("owner_id", user.id);
+    await supabase.from("incidents").delete().eq("owner_id", user.id);
+
+    // 4. Mark subscriber as 'deleted'
+    await supabase.from("subscribers").update({ status: "deleted" }).eq("id", user.id);
+
+    // 5. Revoke session / sign out
+    await supabase.auth.signOut();
   }
 }

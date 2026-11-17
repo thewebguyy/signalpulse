@@ -10,4 +10,5 @@ export interface AuthenticationPort {
   createGuest(request: GuestCreate): Promise<Session>;
   linkRecovery(request: LinkRecoveryRequest): Promise<{ success: boolean; recovery_mode: string }>;
   logout(): Promise<void>;
+  deleteAccount?(): Promise<void>;
 }
