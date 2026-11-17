@@ -17,7 +17,8 @@
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "check:ci": "node scripts/check-ci.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
-    "check": "npm run typecheck && npm run lint && npm test && npm run check:boundaries && npm run check:ci && npm run build && npm run check:bundle"
+    "check": "npm run typecheck && npm run lint && npm test && npm run check:boundaries && npm run check:ci && npm run build && npm run check:bundle",
+    "smoke": "node scripts/smoke-test.mjs"
   },
   "dependencies": {
     "next": "16.4.6",

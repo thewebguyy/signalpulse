@@ -258,11 +258,10 @@ export default function IncidentsPage() {
               return (
                 <label
                   key={cat.code}
-                  className={`flex cursor-pointer flex-col rounded-lg border p-3.5 transition-all ${
-                    isSelected
-                      ? "border-[#064E3B] bg-emerald-50/50 ring-1 ring-[#064E3B]"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  }`}
+                  className={`flex cursor-pointer flex-col rounded-lg border p-3.5 transition-all ${isSelected
+                    ? "border-[#064E3B] bg-emerald-50/50 ring-1 ring-[#064E3B]"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <input
