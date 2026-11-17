@@ -1,0 +1,17 @@
+# Founder decision register
+
+Version: 0.1.0 · Baseline: CTO001-r1 · Status: PROPOSED. All entries pending; no decision maker/date/approval has been invented. CTO Directive 001 approved documentation and specified changes, not application implementation or these defaults.
+
+| ID | Consequential decision | Recommended default | Alternatives / consequence | Approval needed before |
+| --- | --- | --- | --- | --- |
+| F01 | Stack/provider, deployment/data region, processor terms and operating budget | Next.js/TypeScript + managed Supabase PostgreSQL/Auth; one app/database; no PostGIS/maps | Other managed backend requires amended auth/storage contracts; region affects latency and data transfers | Scaffolding/provider configuration and any real data |
+| F02 | Guest ownership and recovery promise | Guest-first, local drafting, explicit no-recovery notice; no account linking in first slice | Optional verified identity before loss adds a contract/UI/security scope; mandatory accounts change friction/data collection | Auth implementation and cloud-history UX approval |
+| F03 | Privacy purposes, legal basis, retention, support and deletion promises | Matrix defaults including 90-day raw data, bounded incident snapshots,12-month incidents,24-hour purge target,31-day backup bound; LGA only | Shorter retention reduces evidence usefulness; longer retention increases exposure/cost; provider backup mismatch requires revision | Any collection; retention/access/deletion implementation commitments |
+| F04 | Metered pilot, endpoint hosting/region/cost and validated method | Bounded16 MiB/30-second calibration proposal; configurable colocated endpoint if validated; upload private | Separate host if needed; payload/method changes need new version and revalidation | Real metered tests or measurement implementation release |
+| F05 | Public claims and residual privacy/statistical risk | Metrics disabled until accepted calibration/privacy/abuse reviews; fixed cohorts, equal owner weight,10-owner floor plus gates, count bands,60-day horizon | Defer comparisons entirely until stronger evidence; cannot replace review with identifying hardware collection | Public numerical publication or marketing performance claims |
+| F06 | Attachment capability cost/security obligations | Later private proxy upload/download with scan/quarantine,5 MiB/five files; text-only export first | Defer uploads; alternative URL design requires new revocation/hosting contract | Attachment infrastructure/implementation |
+| F07 | NCC compensation lookup release/editorial ownership | Sourced guidance first; separately approved reviewed lookup and correction owner | Defer lookup if no reliable review capacity; never promise individual entitlement | Lookup build/release; not a blocker to journal/export |
+
+CTO technical acceptance is additionally required for all six ADRs, contract revision0.1.0, method/receipt proposals, roadmap and Antigravity handoff. Antigravity must acknowledge contract usability before frontend execution. A decision is recorded only with its ID, chosen option, approver/date, rationale, affected versions and any conditions. Approval of a document is not permission to deploy, commit, push, collect data or run production migrations.
+
+Repository licensing before external contributions and brand/domain clearance remain historical prelaunch business issues; they are not added as blockers to this documentation mission. Routine module/file naming and formatter choices do not require a new founder approval flow within future authorized scope.

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SignalPulse NG — Frontend Interaction Test Runner</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #121514; color: #FBFBFA; }
+    .pass { color: #4ADE80; font-weight: bold; }
+    .fail { color: #F87171; font-weight: bold; }
+    .log-line { margin: 4px 0; }
+    iframe { width: 1000px; height: 700px; border: 1px solid #3F4946; background: #FFF; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>SignalPulse NG — Client-Side Interaction Test Suite</h1>
+  <div id="summary">Running tests...</div>
+  <div id="results"></div>
+  <iframe id="test-frame" src="index.html"></iframe>
+
+  <script>
+    var resultsEl = document.getElementById('results');
+    var summaryEl = document.getElementById('summary');
+    var passed = 0;
+    var failed = 0;
+
+    function assert(name, condition, details) {
+      var div = document.createElement('div');
+      div.className = 'log-line';
+      if (condition) {
+        passed++;
+        div.innerHTML = '<span class="pass">[PASS]</span> ' + name;
+        console.log('[PASS] ' + name);
+      } else {
+        failed++;
+        div.innerHTML = '<span class="fail">[FAIL]</span> ' + name + (details ? ' — ' + details : '');
+        console.error('[FAIL] ' + name + (details ? ' — ' + details : ''));
+      }
+      resultsEl.appendChild(div);
+    }
+
+    var frame = document.getElementById('test-frame');
+    frame.onload = function() {
+      var win = frame.contentWindow;
+      var doc = frame.contentDocument;
+
+      try {
+        // Test 1: Navigation switching
+        win.switchView('check');
+        assert('Navigation to #view-check updates active section', 
+          doc.getElementById('view-check').classList.contains('active') &&
+          !doc.getElementById('view-home').classList.contains('active')
+        );
+
+        var activeBtn = doc.querySelector('[data-nav="check"]');
+        assert('Navigation updates aria-current="page"', activeBtn && activeBtn.getAttribute('aria-current') === 'page');
+
+        // Test 2: Network Check Setup & Capped Disclosure
+        var opRadios = doc.querySelectorAll('input[name="check_op"]');
+        assert('Operator selection renders exactly 4 mobile operators', opRadios.length === 4);
+
+        var confirmMobile = doc.getElementById('confirm-mobile-data');
+        assert('Mobile-data testing confirmation checkbox is present', confirmMobile !== null);
+
+        var metaTable = doc.querySelector('#view-check .meta-table');
+        assert('Pre-flight disclosure contains methodology version placeholder', metaTable && metaTable.textContent.indexOf('sp-http-v0.1-preview') !== -1);
+
+        // Test 3: Network Check Simulation flow
+        win.setCheckState('running');
+        assert('Network Check transitions to running state', doc.getElementById('check-state-running').style.display !== 'none');
+
+        win.setCheckState('completed');
+        assert('Network Check transitions to completed qualified result', 
+          doc.getElementById('check-state-completed').style.display !== 'none' &&
+          doc.querySelector('#check-state-completed .metric-value').textContent.indexOf('84') !== -1
+        );
+
+        // Test 4: Incident Journal 6 Provisional Categories
+        win.switchView('incidents');
+        var catSelect = doc.getElementById('inc-category');
+        assert('Incident category select has exactly 6 provisional options', catSelect && catSelect.options.length === 6);
+        assert('Category 1 is Slow or unusable data', catSelect.options[0].value === 'Slow or unusable data');
+        assert('Category 6 is Billing dispute', catSelect.options[5].value === 'Billing dispute');
+
+        // Test 5: Incident Journal Form Validation
+        var initialDraftCount = win.state.incidents.length;
+        doc.getElementById('inc-desc').value = '';
+        win.handleIncidentSubmit();
+        assert('Empty description does not submit or create draft', win.state.incidents.length === initialDraftCount);
+
+        // Test 6: Functional Local Draft Creation & Storage
+        doc.getElementById('inc-desc').value = 'Automated test incident: Call dropped mid-conversation on MTN in Ikeja.';
+        doc.getElementById('inc-category').value = 'Failed or dropped calls';
+        win.handleIncidentSubmit();
+        assert('Valid submission adds draft to reactive store', win.state.incidents.length === initialDraftCount + 1);
+
+        var newestCard = doc.getElementById('card-' + win.state.incidents[0].id);
+        assert('New draft is prepended to DOM list with user_reported badge', 
+          newestCard !== null && newestCard.textContent.indexOf('USER REPORTED') !== -1
+        );
+
+        var pillText = doc.getElementById('draft-pill-text');
+        assert('Header status pill reflects updated local draft count', pillText && pillText.textContent.indexOf(win.state.incidents.length.toString()) !== -1);
+
+        // Test 7: Accessible Delete Modal Confirmation
+        var targetDraftId = win.state.incidents[0].id;
+        win.promptDeleteDraft(targetDraftId);
+        assert('Prompt delete sets target ID and opens modal', win.state.draftToDeleteId === targetDraftId);
+        win.confirmDeleteDraft();
+        assert('Confirm delete permanently removes draft from store', win.state.incidents.find(function(i) { return i.id === targetDraftId; }) === undefined);
+
+        // Test 8: Evidence Builder Dossier Assembly
+        win.switchView('evidence');
+        var timeline = doc.getElementById('dossier-timeline-table');
+        assert('Evidence timeline renders selected test and incident records', timeline && timeline.querySelectorAll('tr').length >= 2);
+
+        var jsonDrawer = doc.getElementById('evidence-json-drawer');
+        assert('Evidence JSON structure matches canonical evidence schema', 
+          jsonDrawer && jsonDrawer.textContent.indexOf('sp-evidence-v0.1') !== -1 &&
+          jsonDrawer.textContent.indexOf('user_assembled_record_not_official_finding') !== -1
+        );
+
+        // Test 9: Network Intelligence Publication States
+        win.switchView('intelligence');
+        assert('Default public state is insufficient_data', 
+          doc.getElementById('intel-state-insufficient').style.display !== 'none' &&
+          doc.getElementById('intel-state-published').style.display === 'none'
+        );
+
+        win.toggleIntelState('withheld');
+        assert('Withheld state renders without leaking contributor counts', 
+          doc.getElementById('intel-state-withheld').style.display !== 'none' &&
+          doc.getElementById('intel-state-withheld').textContent.indexOf('withheld') !== -1
+        );
+
+        win.toggleIntelState('published');
+        assert('Published state renders distribution table with medians and IQR', 
+          doc.getElementById('intel-state-published').style.display !== 'none' &&
+          doc.querySelector('#intel-state-published .meta-table') !== null
+        );
+
+        // Test 10: NCC Guidance Escalation Steps
+        win.switchView('guidance');
+        var nccList = doc.querySelector('#view-guidance ol');
+        assert('NCC Guidance provides 4-step consumer escalation roadmap', nccList && nccList.children.length === 4);
+
+        var nccHotline = doc.querySelector('#view-guidance .meta-table');
+        assert('Official NCC hotline 622 is documented as official source', nccHotline && nccHotline.textContent.indexOf('622') !== -1);
+
+      } catch (err) {
+        assert('Unexpected test execution error', false, err.message);
+      }
+
+      summaryEl.innerHTML = '<span class="' + (failed === 0 ? 'pass' : 'fail') + '">' +
+        'Test Suite Finished: ' + passed + ' Passed, ' + failed + ' Failed.' +
+        '</span>';
+      console.log('SUMMARY: ' + passed + ' passed, ' + failed + ' failed.');
+      window.TEST_COMPLETED = true;
+      window.TEST_SUMMARY = { passed: passed, failed: failed };
+    };
+  </script>
+</body>
+</html>

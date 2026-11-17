@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces & Canvas */
+  --sp-canvas: #F8FAFC;
+  --sp-surface: #FFFFFF;
+  --sp-recessed: #F1F5F9;
+  --sp-subtle: #E2E8F0;
+
+  /* Ink Hierarchy */
+  --sp-ink: #0F172A;
+  --sp-ink-secondary: #475569;
+  --sp-ink-muted: #64748B;
+
+  /* Action & Civic Brand */
+  --sp-civic: #064E3B;
+  --sp-civic-hover: #022C22;
+  --sp-civic-tint: #ECFDF5;
+  --sp-telemetry: #1D4ED8;
+  --sp-warning: #B45309;
+
+  /* Geometry */
+  --sp-radius: 6px;
+  --sp-radius-sm: 4px;
+}
+
+body {
+  background-color: var(--sp-canvas);
+  color: var(--sp-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sp-civic);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print Stylesheet for Formal Evidence Dossier */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+  header, nav, aside, .no-print, button:not(.print-include) {
+    display: none !important;
+  }
+  main {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .print-expand {
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+  }
+}
