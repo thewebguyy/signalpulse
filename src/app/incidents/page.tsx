@@ -20,6 +20,9 @@ import {
   CheckCircleIcon,
   AlertCircleIcon,
 } from "@/components/icons";
+import { CloudBackupCard } from "@/components/cloud-backup-card";
+import { SyncStatusBadge } from "@/components/sync-status-badge";
+import { useSyncEngine, getIncidentSyncStatus, triggerSync } from "@/components/sync-store";
 
 export default function IncidentsPage() {
   const [operator, setOperator] = useState<Operator>("mtn");
@@ -36,6 +39,7 @@ export default function IncidentsPage() {
   const [storageError, setStorageError] = useState<string | null>(null);
   const incidents = useLocalIncidents();
   const storageDiagnostics = useStorageDiagnostics();
+  const syncState = useSyncEngine();
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -88,11 +92,19 @@ export default function IncidentsPage() {
       setComplaintContactedAt("");
       setEditingId(null);
       setStorageError(null);
+
+      // If cloud backup is enrolled, trigger sync in the background
+      if (syncState.backupEnrolled) {
+        void triggerSync();
+      }
+
       setToast({
         id: "saved-incident",
         type: "success",
         title: editingId ? "Changes saved" : "Report saved",
-        message: "Saved on this device. Ready to include in your complaint.",
+        message: syncState.backupEnrolled
+          ? "Saved and queued for private cloud backup."
+          : "Saved on this device. Ready to include in your complaint.",
       });
     } else {
       // Retain entered form fields in memory so subscriber input is not lost
@@ -100,8 +112,8 @@ export default function IncidentsPage() {
       setToast({
         id: "err-save",
         type: "warning",
-        title: "Save Failed",
-        message: writeResult.message,
+        title: "Could not save report",
+        message: "Your browser storage is full or restricted. Review the alert below.",
       });
     }
   };
@@ -112,8 +124,11 @@ export default function IncidentsPage() {
     setAreaId(item.fields.area_id ?? "ikeja");
     setCategory(item.fields.category);
     setNarrative(item.fields.narrative);
+    setOccurredAt(item.fields.occurred_at.slice(0, 16));
     setComplaintRef(item.fields.complaint_reference ?? "");
-    setComplaintContactedAt(item.fields.complaint_contacted_at ? item.fields.complaint_contacted_at.slice(0, 10) : "");
+    setComplaintContactedAt(
+      item.fields.complaint_contacted_at ? item.fields.complaint_contacted_at.slice(0, 10) : ""
+    );
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -125,77 +140,74 @@ export default function IncidentsPage() {
   };
 
   const handleDelete = (id: string) => {
-    const deleteResult = deleteLocalIncident(id);
-    if (deleteResult.success) {
-      if (editingId === id) setEditingId(null);
+    const success = deleteLocalIncident(id);
+    if (success) {
+      if (editingId === id) handleCancelEdit();
+      if (syncState.backupEnrolled) {
+        void triggerSync();
+      }
       setToast({
         id: "deleted-incident",
         type: "info",
-        title: "Report deleted",
-        message: "Removed from this device.",
-      });
-    } else {
-      setToast({
-        id: "err-delete",
-        type: "warning",
-        title: "Delete Failed",
-        message: deleteResult.message,
+        title: "Report removed",
+        message: "The record was removed from your saved reports.",
       });
     }
   };
 
+  const handlePurgeCorrupted = () => {
+    purgeCorruptedIncidents();
+    setToast({
+      id: "purged-data",
+      type: "info",
+      title: "Storage cleaned",
+      message: "Unreadable records removed. Valid reports remain safe.",
+    });
+  };
+
   return (
-    <main id="main" className="mx-auto max-w-3xl space-y-8 px-4 sm:px-6 py-8 sm:py-12">
-      {/* Title */}
-      <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-          My Reports
+    <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+      {/* Page Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          Report a network problem
         </h1>
-        <p className="text-sm sm:text-base leading-relaxed text-slate-600">
-          Record what happened while the details are fresh. Saved only on this device.
-        </p>
-        <p className="text-xs text-slate-500">
-          If you&apos;re using a shared phone or computer, download your records and delete them when you&apos;re done.
+        <p className="text-sm text-slate-600">
+          Save structured records of network failures on your phone or in your private vault to support customer care and NCC complaints.
         </p>
       </div>
 
-      {/* Storage Access Denial Notice */}
+      {/* Cloud Backup & Sync Controls */}
+      <CloudBackupCard />
+
+      {/* Storage Degradation / Quota Notice */}
       {!storageDiagnostics.isAvailable && (
-        <div role="status" aria-live="polite" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs sm:text-sm text-amber-900 flex items-start gap-2.5">
-          <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
-          <div>
-            <strong className="font-semibold">Browser storage is turned off: </strong>
-            You can still type a report here, but this private window won&apos;t save it if you close or refresh the page.
-          </div>
+        <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs sm:text-sm text-amber-900 space-y-1">
+          <p className="font-bold flex items-center gap-1.5 text-amber-950">
+            <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0" aria-hidden="true" />
+            <span>Browser storage is turned off</span>
+          </p>
+          <p className="leading-relaxed">
+            You can still fill out reports and export them, but they won&apos;t stay on this phone after you close this tab. To keep your history, turn off Private Browsing or allow site data.
+          </p>
         </div>
       )}
 
-      {/* Corrupted Record / Unsupported Format Recovery Notice */}
-      {(storageDiagnostics.corruptedCount > 0 || storageDiagnostics.isMalformed) && (
-        <div role="alert" aria-live="assertive" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs sm:text-sm text-amber-950 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-start gap-2.5">
-            <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              <strong className="font-semibold">Some old saved data couldn&apos;t be read: </strong>
-              {storageDiagnostics.corruptedCount > 0
-                ? `${storageDiagnostics.corruptedCount} unreadable item was skipped. Your ${storageDiagnostics.validCount} saved reports are safe.`
-                : "Some saved browser data was damaged and skipped."}
-            </div>
+      {/* Corrupted Records Warning & Clean-up Action */}
+      {storageDiagnostics.corruptedCount > 0 && (
+        <div role="status" className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs sm:text-sm text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold text-amber-950">
+              {storageDiagnostics.corruptedCount} unreadable {storageDiagnostics.corruptedCount === 1 ? "record was" : "records were"} found
+            </p>
+            <p className="text-xs text-amber-800">
+              Older or incomplete drafts are taking up space. Your valid reports are safe.
+            </p>
           </div>
           <button
             type="button"
-            onClick={() => {
-              const res = purgeCorruptedIncidents();
-              if (res.success) {
-                setToast({
-                  id: "purge-success",
-                  type: "success",
-                  title: "Cleaned up",
-                  message: "Unreadable data has been removed.",
-                });
-              }
-            }}
-            className="min-h-[40px] rounded-md border border-amber-400 bg-white px-3 py-1.5 font-semibold text-xs text-amber-900 hover:bg-amber-100 transition-colors"
+            onClick={handlePurgeCorrupted}
+            className="self-start sm:self-auto px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-900 transition-colors"
           >
             Clean up unreadable data
           </button>
@@ -395,16 +407,19 @@ export default function IncidentsPage() {
               const catTitle =
                 INCIDENT_CATEGORIES.find((c) => c.code === item.fields.category)?.title ??
                 item.fields.category.replace(/_/g, " ");
+              const syncStatus = getIncidentSyncStatus(item.id);
+
               return (
                 <div
                   key={item.id}
                   className="rounded-lg border border-slate-200 bg-white p-4 space-y-3"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-bold text-sm text-slate-900">
                         <span className="uppercase">{item.fields.operator}</span> · {catTitle}
                       </span>
+                      <SyncStatusBadge status={syncStatus} onRetry={() => void triggerSync()} />
                     </div>
                     <span className="text-xs text-slate-500">
                       {new Date(item.fields.occurred_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}

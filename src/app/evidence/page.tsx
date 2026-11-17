@@ -12,12 +12,14 @@ import {
   ArrowRightIcon,
   AlertCircleIcon,
 } from "@/components/icons";
+import { EvidenceAttachmentCard, type AttachedEvidenceItem } from "@/components/evidence-attachment-card";
 
 export default function EvidencePage() {
   const incidents = useLocalIncidents();
   const storageDiagnostics = useStorageDiagnostics();
 
   const [selectedIncidentIds, setSelectedIncidentIds] = useState<Set<string>>(new Set());
+  const [attachments, setAttachments] = useState<AttachedEvidenceItem[]>([]);
 
   const [complaintText, setComplaintText] = useState<string>(
     "I am writing to report repeated mobile network problems I experienced in Lagos State. Please review the attached dates, times, and details and resolve this issue."
@@ -54,6 +56,20 @@ export default function EvidencePage() {
 
   const handleDeselectAll = () => {
     setSelectedIncidentIds(new Set());
+  };
+
+  const handleAddAttachment = (item: AttachedEvidenceItem) => {
+    setAttachments((prev) => [...prev, item]);
+    setToast({
+      id: "attach-added",
+      type: "success",
+      title: "Document attached",
+      message: `${item.filename} added to private dossier.`,
+    });
+  };
+
+  const handleRemoveAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
   const handleExportJSON = () => {
@@ -102,98 +118,96 @@ export default function EvidencePage() {
       })),
       assets: [],
       limitations: [
-        "Personal record assembled by the subscriber on SignalPulse NG.",
-        "Includes reports saved by the user; not independently verified by a network or regulator.",
-        "This summary is not an official ruling from your mobile network or the NCC.",
-        "If escalating to the NCC, contact your mobile network first and keep your ticket number.",
+        "This export contains user-assembled private records and observations.",
+        "It does not constitute an official carrier finding, proof of fraud, or legal guarantee of compensation.",
       ],
     };
 
     const parseResult = exportDocumentSchema.safeParse(candidateDoc);
     if (!parseResult.success) {
-      const issue = parseResult.error.issues[0]?.message ?? "Please check your selected reports and complaint note.";
       setToast({
-        id: "err-validation",
+        id: "err-schema",
         type: "warning",
-        title: "Couldn't create file",
-        message: issue,
+        title: "Could not create file",
+        message: "The export file couldn't be created. Check that all fields are filled properly.",
       });
       return;
     }
 
     try {
-      const blob = new Blob([JSON.stringify(parseResult.data, null, 2)], {
-        type: "application/json",
-      });
+      const jsonStr = JSON.stringify(parseResult.data, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `signalpulse-complaint-${new Date().toISOString().slice(0, 10)}.json`;
+      link.download = `signalpulse-evidence-${now.slice(0, 10)}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
       setToast({
-        id: "json-exported",
+        id: "exported-json",
         type: "success",
-        title: "File downloaded",
-        message: "Your complaint file has been saved to this device.",
+        title: "Download complete",
+        message: `Saved ${selectedIncidents.length} ${selectedIncidents.length === 1 ? "report" : "reports"} to your device.`,
       });
     } catch {
       setToast({
         id: "err-download",
         type: "warning",
         title: "Download failed",
-        message: "Your browser couldn't download the file. Try Print or save PDF instead.",
+        message: "Your browser couldn't save the file. Please try again or use the print option.",
       });
     }
   };
 
   const handlePrint = () => {
-    if (typeof window !== "undefined") {
-      window.print();
+    if (selectedIncidents.length === 0) {
+      setToast({
+        id: "err-print-empty",
+        type: "warning",
+        title: "No reports selected",
+        message: "Pick at least 1 saved report before printing.",
+      });
+      return;
     }
+
+    if (!complaintText.trim()) {
+      setToast({
+        id: "err-print-text",
+        type: "warning",
+        title: "Write what you want done",
+        message: "Add a short note explaining what you want before printing.",
+      });
+      return;
+    }
+
+    window.print();
   };
 
   return (
-    <main id="main" className="mx-auto max-w-3xl space-y-8 px-4 sm:px-6 py-8 sm:py-12">
-      {/* Title */}
-      <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+    <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+      {/* Page Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           Prepare a Complaint
         </h1>
-        <p className="text-sm sm:text-base leading-relaxed text-slate-600">
-          Pick the reports you want to include, write what you&apos;re asking for, and download or print your summary.
+        <p className="text-sm text-slate-600">
+          Put together your saved reports and receipts into a clean summary to show your network or the NCC.
         </p>
       </div>
 
-      {/* Storage Access Denial Notice */}
+      {/* Storage Degradation Warning */}
       {!storageDiagnostics.isAvailable && (
-        <div role="status" aria-live="polite" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs sm:text-sm text-amber-900 flex items-start gap-2.5">
-          <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
-          <div>
-            <strong className="font-semibold">Browser storage is turned off: </strong>
-            Saved reports can&apos;t be loaded in this private window.
-          </div>
-        </div>
-      )}
-
-      {/* Corrupted Records Notice */}
-      {storageDiagnostics.corruptedCount > 0 && (
-        <div role="status" aria-live="polite" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs sm:text-sm text-amber-950 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-start gap-2.5">
-            <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              {storageDiagnostics.corruptedCount} unreadable item was skipped.
-            </div>
-          </div>
-          <Link
-            href="/incidents"
-            className="text-xs font-semibold text-[#064E3B] hover:underline"
-          >
-            Clean up in My Reports
-          </Link>
+        <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs sm:text-sm text-amber-900 space-y-1">
+          <p className="font-bold flex items-center gap-1.5 text-amber-950">
+            <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0" aria-hidden="true" />
+            <span>Browser storage is turned off</span>
+          </p>
+          <p className="leading-relaxed">
+            Download your JSON file or print your summary now. Once you close this window, these records will disappear from this phone.
+          </p>
         </div>
       )}
 
@@ -334,6 +348,13 @@ export default function EvidencePage() {
         />
       </section>
 
+      {/* Supporting Attachments & Receipts */}
+      <EvidenceAttachmentCard
+        attachments={attachments}
+        onAttach={handleAddAttachment}
+        onRemove={handleRemoveAttachment}
+      />
+
       {/* 3. Printable Summary Preview */}
       <section aria-labelledby="preview-title" className="rounded-xl border border-slate-300 bg-white p-6 sm:p-8 space-y-6 print-expand">
         <div className="border-b border-slate-200 pb-4 flex flex-wrap items-baseline justify-between gap-2">
@@ -354,6 +375,20 @@ export default function EvidencePage() {
           <span className="font-semibold text-slate-900 block mb-1">Your note:</span>
           {complaintText.trim() || "No note written yet."}
         </div>
+
+        {/* Attached Files Summary in Preview */}
+        {attachments.length > 0 && (
+          <div className="rounded-md bg-slate-50 p-4 text-xs text-slate-800 border border-slate-200 space-y-2">
+            <span className="font-semibold text-slate-900 block">Attached Proof of Payment & Errors ({attachments.length}):</span>
+            <ul className="list-disc pl-4 space-y-1">
+              {attachments.map((att) => (
+                <li key={att.id}>
+                  {att.filename} ({att.fileType.replace(/_/g, " ")}) — {(att.byteSize / 1024).toFixed(0)} KB
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="space-y-2">
           <h3 className="text-sm font-bold text-slate-900">
