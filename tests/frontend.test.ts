@@ -14,6 +14,8 @@ import {
   deleteLocalIncident,
   getLocalMeasurements,
   saveLocalMeasurement,
+  getStorageDiagnostics,
+  purgeCorruptedIncidents,
 } from "@/components/local-store";
 import type { Incident } from "@/contracts/incidents";
 import type { Measurement } from "@/contracts/measurements";
@@ -325,5 +327,104 @@ describe("localStorage simulation and edge-case error handling", () => {
       expect(res.error).toBe("quota_exceeded");
       expect(res.message).toContain("quota");
     }
+  });
+
+  it("reports accurate storage diagnostics for empty and populated states", () => {
+    const diagEmpty = getStorageDiagnostics();
+    expect(diagEmpty.isAvailable).toBe(true);
+    expect(diagEmpty.rawCount).toBe(0);
+    expect(diagEmpty.validCount).toBe(0);
+    expect(diagEmpty.corruptedCount).toBe(0);
+    expect(diagEmpty.isMalformed).toBe(false);
+
+    const validIncident: Incident = {
+      id: "00000000-0000-4000-8000-000000000007",
+      client_record_id: "00000000-0000-4000-8000-000000000008",
+      provenance: "user_reported",
+      revision: 1,
+      fields: {
+        operator: "mtn",
+        area_id: "ikeja",
+        category: "unusable_internet",
+        occurred_at: "2026-11-16T16:00:00.000Z",
+        narrative: "Diagnostic test incident.",
+        complaint_reference: null,
+        complaint_contacted_at: null,
+      },
+      created_at: "2026-11-16T16:00:00.000Z",
+      updated_at: "2026-11-16T16:00:00.000Z",
+      expires_at: "2027-11-16T16:00:00.000Z",
+    };
+    saveLocalIncident(validIncident);
+
+    const diagPopulated = getStorageDiagnostics();
+    expect(diagPopulated.rawCount).toBe(1);
+    expect(diagPopulated.validCount).toBe(1);
+    expect(diagPopulated.corruptedCount).toBe(0);
+  });
+
+  it("detects corrupted and malformed records and purges unreadable entries while preserving valid ones", () => {
+    const validIncident: Incident = {
+      id: "00000000-0000-4000-8000-000000000009",
+      client_record_id: "00000000-0000-4000-8000-000000000010",
+      provenance: "user_reported",
+      revision: 1,
+      fields: {
+        operator: "airtel",
+        area_id: "alimosho",
+        category: "failed_call",
+        occurred_at: "2026-11-16T17:00:00.000Z",
+        narrative: "Surviving valid incident.",
+        complaint_reference: null,
+        complaint_contacted_at: null,
+      },
+      created_at: "2026-11-16T17:00:00.000Z",
+      updated_at: "2026-11-16T17:00:00.000Z",
+      expires_at: "2027-11-16T17:00:00.000Z",
+    };
+
+    const mixedEntries = [
+      validIncident,
+      { id: "bad-entry-1", fields: {} },
+      { id: "bad-entry-2", narrative: "corrupted legacy format" },
+    ];
+
+    mockStorage["signalpulse_local_incidents_v0.1"] = JSON.stringify(mixedEntries);
+
+    const diagBefore = getStorageDiagnostics();
+    expect(diagBefore.rawCount).toBe(3);
+    expect(diagBefore.validCount).toBe(1);
+    expect(diagBefore.corruptedCount).toBe(2);
+    expect(diagBefore.isMalformed).toBe(false);
+
+    // Run purge
+    const purgeRes = purgeCorruptedIncidents();
+    expect(purgeRes.success).toBe(true);
+
+    const diagAfter = getStorageDiagnostics();
+    expect(diagAfter.rawCount).toBe(1);
+    expect(diagAfter.validCount).toBe(1);
+    expect(diagAfter.corruptedCount).toBe(0);
+
+    const remaining = getLocalIncidents();
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]?.id).toBe("00000000-0000-4000-8000-000000000009");
+  });
+
+  it("handles malformed non-JSON strings gracefully in diagnostics and purge", () => {
+    mockStorage["signalpulse_local_incidents_v0.1"] = "MALFORMED_JSON_STRING_{{{";
+
+    const diag = getStorageDiagnostics();
+    expect(diag.isMalformed).toBe(true);
+    expect(diag.corruptedCount).toBe(1);
+    expect(diag.validCount).toBe(0);
+
+    const purgeRes = purgeCorruptedIncidents();
+    expect(purgeRes.success).toBe(true);
+
+    const diagCleaned = getStorageDiagnostics();
+    expect(diagCleaned.isMalformed).toBe(false);
+    expect(diagCleaned.rawCount).toBe(0);
+    expect(diagCleaned.corruptedCount).toBe(0);
   });
 });

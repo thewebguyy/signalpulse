@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { Toast, type ToastMessage } from "@/components/toast";
-import { useLocalIncidents } from "@/components/local-store";
+import { useLocalIncidents, useStorageDiagnostics } from "@/components/local-store";
 import type { ExportDocument } from "@/contracts/evidence";
 import { exportDocumentSchema } from "@/contracts/evidence";
 import {
@@ -12,10 +12,12 @@ import {
   DownloadIcon,
   LockClosedIcon,
   ArrowRightIcon,
+  AlertCircleIcon,
 } from "@/components/icons";
 
 export default function EvidencePage() {
   const incidents = useLocalIncidents();
+  const storageDiagnostics = useStorageDiagnostics();
 
   const [selectedIncidentIds, setSelectedIncidentIds] = useState<Set<string>>(new Set());
 
@@ -169,6 +171,36 @@ export default function EvidencePage() {
           Assemble your private incident records into a structured, timestamped evidence dossier to attach when escalating with your provider or the NCC.
         </p>
       </div>
+
+      {/* Storage Access Denial Notice */}
+      {!storageDiagnostics.isAvailable && (
+        <div role="status" aria-live="polite" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 flex items-start gap-2.5">
+          <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
+          <div>
+            <strong className="font-semibold">Local Storage Inaccessible: </strong>
+            Your browser has restricted local storage access. Saved incident records cannot be loaded in this window.
+          </div>
+        </div>
+      )}
+
+      {/* Corrupted Records Notice */}
+      {storageDiagnostics.corruptedCount > 0 && (
+        <div role="status" aria-live="polite" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950 flex items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <strong className="font-semibold">Notice: </strong>
+              {storageDiagnostics.corruptedCount} unreadable entry was detected in local storage and excluded from selection.
+            </div>
+          </div>
+          <Link
+            href="/incidents"
+            className="text-xs font-semibold text-[#064E3B] hover:underline"
+          >
+            Review in Journal
+          </Link>
+        </div>
+      )}
 
       {/* Control Bar */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">

@@ -9,6 +9,8 @@ import {
   useLocalIncidents,
   saveLocalIncident,
   deleteLocalIncident,
+  useStorageDiagnostics,
+  purgeCorruptedIncidents,
 } from "@/components/local-store";
 import { INCIDENT_CATEGORIES } from "@/components/constants";
 import type { Operator, IncidentCategory } from "@/contracts/domain";
@@ -18,6 +20,7 @@ import {
   TrashIcon,
   CheckCircleIcon,
   LockClosedIcon,
+  AlertCircleIcon,
 } from "@/components/icons";
 
 export default function IncidentsPage() {
@@ -32,7 +35,9 @@ export default function IncidentsPage() {
   const [complaintContactedAt, setComplaintContactedAt] = useState<string>("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [storageError, setStorageError] = useState<string | null>(null);
   const incidents = useLocalIncidents();
+  const storageDiagnostics = useStorageDiagnostics();
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -49,6 +54,7 @@ export default function IncidentsPage() {
     }
 
     setIsSubmitting(true);
+    setStorageError(null);
 
     const now = new Date().toISOString();
     const targetId = editingId ?? (`00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, "0")}` as const);
@@ -83,6 +89,7 @@ export default function IncidentsPage() {
       setComplaintRef("");
       setComplaintContactedAt("");
       setEditingId(null);
+      setStorageError(null);
       setToast({
         id: "saved-incident",
         type: "success",
@@ -91,6 +98,7 @@ export default function IncidentsPage() {
       });
     } else {
       // Retain entered form fields in memory so subscriber input is not lost
+      setStorageError(writeResult.message);
       setToast({
         id: "err-save",
         type: "warning",
@@ -172,6 +180,49 @@ export default function IncidentsPage() {
           Anyone with access to this browser can view these local records. If you share this device, consider exporting your dossier and clearing your records.
         </div>
       </div>
+
+      {/* Storage Access Denial Notice */}
+      {!storageDiagnostics.isAvailable && (
+        <div role="status" aria-live="polite" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 flex items-start gap-2.5">
+          <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
+          <div>
+            <strong className="font-semibold">Local Storage Inaccessible: </strong>
+            Your browser has restricted local storage access (common in strict private/incognito windows or when cookies are disabled). You can compose and review entries in this session, but they will not persist across browser reloads.
+          </div>
+        </div>
+      )}
+
+      {/* Corrupted Record / Unsupported Format Recovery Notice */}
+      {(storageDiagnostics.corruptedCount > 0 || storageDiagnostics.isMalformed) && (
+        <div role="alert" aria-live="assertive" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <strong className="font-semibold">Storage Integrity Notice: </strong>
+              {storageDiagnostics.corruptedCount > 0
+                ? `${storageDiagnostics.corruptedCount} unreadable or invalid local entry was detected and excluded from your ledger. Your ${storageDiagnostics.validCount} valid records are safe.`
+                : "Malformed data was detected in local storage. Invalid entries were safely excluded."}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const res = purgeCorruptedIncidents();
+              if (res.success) {
+                setToast({
+                  id: "purge-success",
+                  type: "success",
+                  title: "Ledger Cleaned",
+                  message: "Unreadable local entries have been safely removed.",
+                });
+              }
+            }}
+            className="rounded-md border border-amber-400 bg-white px-3 py-1.5 font-semibold text-xs text-amber-900 hover:bg-amber-100 transition-colors"
+          >
+            Purge Unreadable Entries
+          </button>
+        </div>
+      )}
 
       {/* Structured Incident Form */}
       <form onSubmit={handleSaveIncident} className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-6">
@@ -310,6 +361,20 @@ export default function IncidentsPage() {
             </div>
           </div>
         </div>
+
+        {/* Inline Storage Failure Alert with Recovery Guidance */}
+        {storageError && (
+          <div role="alert" aria-live="assertive" className="rounded-lg border border-red-200 bg-red-50 p-4 text-xs text-red-900 space-y-2">
+            <div className="flex items-center gap-2 font-bold text-red-950">
+              <AlertCircleIcon className="h-4 w-4 text-red-700 shrink-0" aria-hidden="true" />
+              <span>Storage Save Blocked</span>
+            </div>
+            <p className="leading-relaxed">{storageError}</p>
+            <div className="text-[11px] text-red-800 pt-1 border-t border-red-200/80">
+              <strong>Your Input is Safe:</strong> Your entered text has been retained in memory. If storage is full, navigate to the Evidence Builder in another tab to export your current records, or delete older entries below to free space.
+            </div>
+          </div>
+        )}
 
         {/* Submit Button */}
         <button

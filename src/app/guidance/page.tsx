@@ -74,37 +74,65 @@ export default function GuidancePage() {
           </div>
 
           {/* Step 2 */}
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs space-y-2">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-bold text-sm text-slate-900">
                 2. Sourced Resolution Timelines &amp; Escalation Window
               </span>
-              <span className="text-xs font-semibold text-slate-600">Statutory Provisions</span>
+              <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                Statutory Provisions
+              </span>
             </div>
             <p className="text-xs leading-relaxed text-slate-600">
-              Providers must diligently work to resolve complaints within their approved Individual Consumer Code of Practice (ICCP). Key statutory windows include:
+              Licensees are obligated to resolve complaints diligently under their approved Individual Consumer Code of Practice (ICCP). Note the explicit statutory scopes and regulatory limits:
             </p>
-            <div className="grid gap-2 sm:grid-cols-3 pt-1 text-xs">
-              <div className="rounded bg-slate-50 p-3 border border-slate-200/80 space-y-1">
-                <span className="font-bold text-slate-900 block">General Inquiries</span>
-                <span className="font-mono text-sm font-bold text-[#064E3B] block">96 Hours</span>
-                <span className="text-[11px] text-slate-500 block leading-tight">
-                  Licensees must respond to service inquiries within 96 hours at no cost.
-                </span>
+            <div className="grid gap-3 sm:grid-cols-3 pt-1 text-xs">
+              <div className="rounded-md bg-slate-50 p-3.5 border border-slate-200 space-y-1.5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-slate-900">Information Inquiries</span>
+                    <span className="text-[10px] font-mono uppercase bg-slate-200/70 text-slate-700 px-1.5 py-0.2 rounded font-medium">Sec. 80</span>
+                  </div>
+                  <span className="font-mono text-base font-bold text-[#064E3B] block">96 Hours</span>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-normal">
+                    Applies strictly to general service inquiries and tariff terms under Consumer Code of Practice Regulations § 80.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-200/60 text-[10px] text-slate-500 italic">
+                  Note: Not an operational network restoration guarantee.
+                </div>
               </div>
-              <div className="rounded bg-slate-50 p-3 border border-slate-200/80 space-y-1">
-                <span className="font-bold text-slate-900 block">The 30-Day Threshold</span>
-                <span className="font-mono text-sm font-bold text-[#064E3B] block">30 Days</span>
-                <span className="text-[11px] text-slate-500 block leading-tight">
-                  If a complaint remains unresolved after 30 days, consumers are legally entitled to escalate to the NCC.
-                </span>
+
+              <div className="rounded-md bg-slate-50 p-3.5 border border-slate-200 space-y-1.5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-slate-900">Escalation Window</span>
+                    <span className="text-[10px] font-mono uppercase bg-slate-200/70 text-slate-700 px-1.5 py-0.2 rounded font-medium">ICCP Threshold</span>
+                  </div>
+                  <span className="font-mono text-base font-bold text-[#064E3B] block">30 Days</span>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-normal">
+                    Statutory threshold after which unresolved complaints can be escalated directly to the NCC Consumer Affairs Bureau.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-200/60 text-[10px] text-slate-500 italic">
+                  Note: Operating turnaround times vary by carrier ICCP.
+                </div>
               </div>
-              <div className="rounded bg-slate-50 p-3 border border-slate-200/80 space-y-1">
-                <span className="font-bold text-slate-900 block">Outer Resolution Limit</span>
-                <span className="font-mono text-sm font-bold text-[#064E3B] block">90 Days</span>
-                <span className="text-[11px] text-slate-500 block leading-tight">
-                  No consumer dispute may remain unresolved for more than 3 months.
-                </span>
+
+              <div className="rounded-md bg-slate-50 p-3.5 border border-slate-200 space-y-1.5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-slate-900">Outer Dispute Limit</span>
+                    <span className="text-[10px] font-mono uppercase bg-slate-200/70 text-slate-700 px-1.5 py-0.2 rounded font-medium">Dispute Rules</span>
+                  </div>
+                  <span className="font-mono text-base font-bold text-[#064E3B] block">90 Days</span>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-normal">
+                    Under NCC Dispute Resolution Guidelines, pending formal disputes cannot linger unresolved past 3 months.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-200/60 text-[10px] text-slate-500 italic">
+                  Note: Governs formal Commission dispute proceedings.
+                </div>
               </div>
             </div>
           </div>

@@ -12,6 +12,14 @@ export type StorageWriteResult =
       message: string;
     };
 
+export interface StorageDiagnostics {
+  isAvailable: boolean;
+  rawCount: number;
+  validCount: number;
+  corruptedCount: number;
+  isMalformed: boolean;
+}
+
 const listeners = new Set<() => void>();
 function emitChange() {
   listeners.forEach((listener) => listener());
@@ -26,6 +34,13 @@ export function subscribeStore(listener: () => void) {
 
 let cachedIncidentsRaw: string | null = null;
 let cachedIncidents: Incident[] = [];
+let currentDiagnostics: StorageDiagnostics = {
+  isAvailable: false,
+  rawCount: 0,
+  validCount: 0,
+  corruptedCount: 0,
+  isMalformed: false,
+};
 
 /**
  * Checks whether window.localStorage is accessible without throwing.
@@ -44,19 +59,57 @@ export function isLocalStorageAvailable(): boolean {
  * Invalid or malformed records are filtered out to prevent data corruption.
  */
 export function getLocalIncidents(): Incident[] {
-  if (typeof window === "undefined" || !isLocalStorageAvailable()) return [];
+  if (typeof window === "undefined" || !isLocalStorageAvailable()) {
+    currentDiagnostics = {
+      isAvailable: false,
+      rawCount: 0,
+      validCount: 0,
+      corruptedCount: 0,
+      isMalformed: false,
+    };
+    return [];
+  }
+
   try {
     const raw = window.localStorage.getItem(INCIDENTS_KEY);
     if (raw === cachedIncidentsRaw) return cachedIncidents;
     cachedIncidentsRaw = raw;
     if (!raw) {
       cachedIncidents = [];
+      currentDiagnostics = {
+        isAvailable: true,
+        rawCount: 0,
+        validCount: 0,
+        corruptedCount: 0,
+        isMalformed: false,
+      };
       return cachedIncidents;
     }
 
-    const parsed: unknown = JSON.parse(raw);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      cachedIncidents = [];
+      currentDiagnostics = {
+        isAvailable: true,
+        rawCount: 0,
+        validCount: 0,
+        corruptedCount: 1,
+        isMalformed: true,
+      };
+      return cachedIncidents;
+    }
+
     if (!Array.isArray(parsed)) {
       cachedIncidents = [];
+      currentDiagnostics = {
+        isAvailable: true,
+        rawCount: 0,
+        validCount: 0,
+        corruptedCount: 1,
+        isMalformed: true,
+      };
       return cachedIncidents;
     }
 
@@ -69,11 +122,36 @@ export function getLocalIncidents(): Incident[] {
       }
     }
 
+    const corruptedCount = Math.max(0, parsed.length - validated.length);
+    currentDiagnostics = {
+      isAvailable: true,
+      rawCount: parsed.length,
+      validCount: validated.length,
+      corruptedCount,
+      isMalformed: false,
+    };
+
     cachedIncidents = validated;
     return cachedIncidents;
   } catch {
+    currentDiagnostics = {
+      isAvailable: false,
+      rawCount: 0,
+      validCount: 0,
+      corruptedCount: 0,
+      isMalformed: true,
+    };
     return [];
   }
+}
+
+/**
+ * Returns diagnostic metadata regarding the health of local storage.
+ */
+export function getStorageDiagnostics(): StorageDiagnostics {
+  // Ensure we have current reading
+  getLocalIncidents();
+  return currentDiagnostics;
 }
 
 /**
@@ -113,6 +191,13 @@ export function saveLocalIncident(incident: Incident): StorageWriteResult {
     window.localStorage.setItem(INCIDENTS_KEY, serialized);
     cachedIncidentsRaw = serialized;
     cachedIncidents = updated;
+    currentDiagnostics = {
+      isAvailable: true,
+      rawCount: updated.length,
+      validCount: updated.length,
+      corruptedCount: 0,
+      isMalformed: false,
+    };
     emitChange();
     return { success: true };
   } catch (err: unknown) {
@@ -160,6 +245,13 @@ export function deleteLocalIncident(id: string): StorageWriteResult {
     window.localStorage.setItem(INCIDENTS_KEY, serialized);
     cachedIncidentsRaw = serialized;
     cachedIncidents = updated;
+    currentDiagnostics = {
+      isAvailable: true,
+      rawCount: updated.length,
+      validCount: updated.length,
+      corruptedCount: 0,
+      isMalformed: false,
+    };
     emitChange();
     return { success: true };
   } catch {
@@ -167,6 +259,42 @@ export function deleteLocalIncident(id: string): StorageWriteResult {
       success: false,
       error: "write_failed",
       message: "Failed to remove the incident from browser storage.",
+    };
+  }
+}
+
+/**
+ * Purges unreadable or corrupted records from localStorage, keeping only verified valid records.
+ */
+export function purgeCorruptedIncidents(): StorageWriteResult {
+  if (typeof window === "undefined" || !isLocalStorageAvailable()) {
+    return {
+      success: false,
+      error: "storage_unavailable",
+      message: "Browser local storage is not available.",
+    };
+  }
+
+  try {
+    const valid = getLocalIncidents();
+    const serialized = JSON.stringify(valid);
+    window.localStorage.setItem(INCIDENTS_KEY, serialized);
+    cachedIncidentsRaw = serialized;
+    cachedIncidents = valid;
+    currentDiagnostics = {
+      isAvailable: true,
+      rawCount: valid.length,
+      validCount: valid.length,
+      corruptedCount: 0,
+      isMalformed: false,
+    };
+    emitChange();
+    return { success: true };
+  } catch {
+    return {
+      success: false,
+      error: "write_failed",
+      message: "Failed to clean corrupted records.",
     };
   }
 }
@@ -186,6 +314,13 @@ export function saveLocalMeasurement(_measurement: Measurement): StorageWriteRes
 
 const emptyIncidents: Incident[] = [];
 const emptyMeasurements: Measurement[] = [];
+const defaultDiagnostics: StorageDiagnostics = {
+  isAvailable: false,
+  rawCount: 0,
+  validCount: 0,
+  corruptedCount: 0,
+  isMalformed: false,
+};
 
 export function useLocalIncidents(): Incident[] {
   return useSyncExternalStore(subscribeStore, getLocalIncidents, () => emptyIncidents);
@@ -193,4 +328,8 @@ export function useLocalIncidents(): Incident[] {
 
 export function useLocalMeasurements(): Measurement[] {
   return useSyncExternalStore(subscribeStore, getLocalMeasurements, () => emptyMeasurements);
+}
+
+export function useStorageDiagnostics(): StorageDiagnostics {
+  return useSyncExternalStore(subscribeStore, getStorageDiagnostics, () => defaultDiagnostics);
 }
