@@ -7,7 +7,7 @@ import { sameActiveOwner } from "@/modules/incidents/ownership";
 describe("environment fails closed", () => {
   it("runs without credentials and supports production compilation in synthetic mode", () => {
     expect(parseEnvironment({})).toEqual({ NODE_ENV: "development", SIGNALPULSE_DATA_MODE: "synthetic" });
-    expect(parseEnvironment({ NODE_ENV: "production", PATH: "ordinary-host-variable" }).SIGNALPULSE_DATA_MODE).toBe("synthetic");
+    expect(parseEnvironment({ NODE_ENV: "production", PATH: "ordinary-host-variable", NEXT_PUBLIC_VERCEL_ENV: "production" }).SIGNALPULSE_DATA_MODE).toBe("synthetic");
   });
   it.each([{ SIGNALPULSE_DATA_MODE: "live" }, { SUPABASE_SERVICE_ROLE_KEY: "do-not-leak" }, { NEXT_PUBLIC_TOKEN: "do-not-leak" }, { SIGNALPULSE_UNKNOWN: "do-not-leak" }, { NODE_ENV: "do-not-leak" }])("rejects unsupported configuration without echoing values", (input) => {
     expect(() => parseEnvironment(input)).toThrow();
