@@ -1,6 +1,5 @@
 import type { Operator } from "@/contracts/domain";
 import { OPERATOR_OPTIONS } from "@/components/constants";
-import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 
 interface OperatorSelectorProps {
   value: Operator | null;
@@ -17,14 +16,11 @@ export function OperatorSelector({
 }: OperatorSelectorProps) {
   return (
     <fieldset className="space-y-2 border-0 p-0 m-0">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <legend className="text-sm font-semibold text-[#121514]">
-          Mobile Network Operator
-        </legend>
-        <ProvenanceBadge provenance="user_reported" />
-      </div>
-      <p className="text-xs text-[#64706C]">
-        Select the carrier serving your active connection. Web browsers cannot cryptographically read your SIM card.
+      <legend className="text-sm font-semibold text-slate-900">
+        Which network? <span className="text-rose-700" aria-hidden="true">*</span>
+      </legend>
+      <p className="text-xs text-slate-500">
+        Pick the mobile network you were using.
       </p>
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 pt-1">

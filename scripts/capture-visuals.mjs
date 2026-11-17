@@ -13,7 +13,7 @@ if (!chromePath) {
   process.exit(1);
 }
 
-const targetDir = path.resolve(process.cwd(), "docs/frontend/screenshots/v2");
+const targetDir = path.resolve(process.cwd(), "docs/frontend/screenshots/v3");
 if (!fs.existsSync(targetDir)) {
   fs.mkdirSync(targetDir, { recursive: true });
 }
@@ -46,6 +46,7 @@ for (const vp of viewports) {
       "--headless=new",
       `--screenshot=${outFile}`,
       `--window-size=${vp.size}`,
+      "--force-device-scale-factor=1",
       "--hide-scrollbars",
       "--disable-gpu",
       url,

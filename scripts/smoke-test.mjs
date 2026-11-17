@@ -10,8 +10,8 @@ const routes = [
     expectedStatus: 200,
     requiredStrings: [
       "SignalPulse",
-      "Independent Consumer Evidence Platform",
-      "Document mobile network failures",
+      "Bad network? Keep a record.",
+      "Report a problem",
     ],
   },
   {
@@ -19,43 +19,45 @@ const routes = [
     expectedStatus: 200,
     requiredStrings: [
       "Network Check",
-      "Live Network Measurements Unavailable in this Release",
-      "Evidence Integrity Guarantee",
+      "Connection testing",
+      "Report a network problem",
     ],
   },
   {
     path: "/incidents",
     expectedStatus: 200,
     requiredStrings: [
-      "Incident Journal",
-      "Record mobile network service failures",
-      "Preserved locally on this device",
+      "My Reports",
+      "New report",
+      "Save report",
     ],
   },
   {
     path: "/evidence",
     expectedStatus: 200,
     requiredStrings: [
-      "Evidence Builder",
-      "Dispute Workspace",
+      "Prepare a Complaint",
+      "Download file (JSON)",
+      "Your complaint summary",
     ],
   },
   {
     path: "/intelligence",
     expectedStatus: 200,
     requiredStrings: [
-      "Network Intelligence",
-      "Publication Integrity",
-      "Screened, privacy-protected public network summaries",
+      "Network Insights",
+      "Area insights aren",
     ],
   },
   {
     path: "/guidance",
     expectedStatus: 200,
     requiredStrings: [
-      "NCC Consumer Guidance",
-      "Independent Platform Disclaimer",
-      "Authority: Nigerian Communications Commission",
+      "Get Help",
+      "622",
+      "consumer.ncc.gov.ng",
+      "96 hours",
+      "30 days",
     ],
   },
   {

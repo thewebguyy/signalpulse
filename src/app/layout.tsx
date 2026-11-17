@@ -5,8 +5,9 @@ import { AppHeader } from "@/components/app-header";
 import { AppNavigation } from "@/components/navigation";
 
 export const metadata: Metadata = {
-  title: "SignalPulse NG | Independent Network Intelligence & Consumer Evidence",
-  description: "Lagos State consumer-evidence platform. Measure connectivity, document service incidents, assemble private evidence, and take informed action.",
+  title: "SignalPulse NG — Keep a record of mobile network problems",
+  description:
+    "Record dropped calls, dead data, and missing airtime in Lagos State. Keep your evidence together and know what to do next.",
   robots: { index: false, follow: false },
 };
 
