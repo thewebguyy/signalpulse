@@ -77,4 +77,17 @@ describe("Row Level Security (RLS) and Tenant Isolation", () => {
     expect(sameActiveOwner({ actorOwnerId: userA, recordOwnerId: userA, ownerState: "deleting" })).toBe(false);
     expect(sameActiveOwner({ actorOwnerId: userA, recordOwnerId: userA, ownerState: "deleted" })).toBe(false);
   });
+
+  it("hardens SECURITY DEFINER functions against unauthenticated RPC execution (CTO012-D)", () => {
+    // 1. handle_new_subscriber must NOT be executable by PUBLIC, anon, or authenticated
+    expect(migrationSql).toContain("REVOKE ALL ON FUNCTION public.handle_new_subscriber() FROM PUBLIC, anon, authenticated;");
+
+    // 2. purge_expired_records must NOT be callable by clients (PUBLIC, anon, authenticated); only service_role
+    expect(migrationSql).toContain("REVOKE ALL ON FUNCTION public.purge_expired_records(integer) FROM PUBLIC, anon, authenticated;");
+    expect(migrationSql).toContain("GRANT EXECUTE ON FUNCTION public.purge_expired_records(integer) TO service_role;");
+
+    // 3. apply_sync_batch must NOT be callable by unauthenticated clients (PUBLIC, anon)
+    expect(migrationSql).toContain("REVOKE ALL ON FUNCTION public.apply_sync_batch(text, jsonb, uuid[]) FROM PUBLIC, anon;");
+    expect(migrationSql).toContain("GRANT EXECUTE ON FUNCTION public.apply_sync_batch(text, jsonb, uuid[]) TO authenticated, service_role;");
+  });
 });

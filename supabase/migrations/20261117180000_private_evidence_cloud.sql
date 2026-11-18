@@ -491,3 +491,39 @@ BEGIN
     RETURN v_result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- ==============================================================================
+-- 13. PRIVILEGE HARDENING & RPC ACCESS RESTRICTION (CTO012-D)
+-- ==============================================================================
+-- By default in PostgreSQL, functions created in the public schema grant EXECUTE to PUBLIC.
+-- For SECURITY DEFINER functions, this inadvertently exposes them via PostgREST RPC
+-- to anon and authenticated roles unless explicitly revoked.
+
+-- 1. handle_new_subscriber: Internal trigger function only.
+-- Revoke all execute privileges from PUBLIC, anon, and authenticated.
+REVOKE ALL ON FUNCTION public.handle_new_subscriber() FROM PUBLIC, anon, authenticated;
+
+-- 2. purge_expired_records: Administrative maintenance function.
+-- Revoke all execute privileges from PUBLIC, anon, and authenticated. Grant strictly to service_role.
+REVOKE ALL ON FUNCTION public.purge_expired_records(integer) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.purge_expired_records(integer) TO service_role;
+
+-- 3. apply_sync_batch: Client synchronization RPC function.
+-- Revoke from PUBLIC and anon (unauthenticated callers must not invoke RPC).
+-- Grant strictly to authenticated subscribers and service_role.
+REVOKE ALL ON FUNCTION public.apply_sync_batch(text, jsonb, uuid[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.apply_sync_batch(text, jsonb, uuid[]) TO authenticated, service_role;
+
+-- 4. rls_auto_enable: Supabase internal helper (if present in public schema).
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public' AND p.proname = 'rls_auto_enable'
+    ) THEN
+        EXECUTE 'REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM PUBLIC, anon, authenticated;';
+    END IF;
+END;
+$$;
+
