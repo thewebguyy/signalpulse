@@ -22,8 +22,8 @@ export default function HomePage() {
 
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <Link
-            href="/incidents"
-            className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-[#064E3B] px-5 py-3 text-sm sm:text-base font-semibold text-white hover:bg-[#022C22] transition-colors"
+            href="/report"
+            className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-[#064E3B] px-5 py-3 text-sm sm:text-base font-semibold text-white hover:bg-[#022C22] transition-colors shadow-sm"
           >
             <span>Report a problem</span>
             <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
@@ -35,6 +35,43 @@ export default function HomePage() {
           >
             View my records
           </Link>
+        </div>
+
+        {/* Quick Operator Routes */}
+        <div className="pt-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-2">
+            Quick report by network:
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/report/mtn"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:border-amber-400 hover:bg-amber-50/50 transition-colors"
+            >
+              <span className="h-2 w-2 rounded-full bg-[#E5A000]" aria-hidden="true" />
+              <span>MTN</span>
+            </Link>
+            <Link
+              href="/report/airtel"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:border-red-400 hover:bg-red-50/50 transition-colors"
+            >
+              <span className="h-2 w-2 rounded-full bg-[#D60000]" aria-hidden="true" />
+              <span>Airtel</span>
+            </Link>
+            <Link
+              href="/report/glo"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors"
+            >
+              <span className="h-2 w-2 rounded-full bg-[#008751]" aria-hidden="true" />
+              <span>Glo</span>
+            </Link>
+            <Link
+              href="/report/t2mobile"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:border-emerald-700 hover:bg-emerald-50/50 transition-colors"
+            >
+              <span className="h-2 w-2 rounded-full bg-[#1A5336]" aria-hidden="true" />
+              <span>T2mobile</span>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -92,17 +129,49 @@ export default function HomePage() {
         </ol>
       </section>
 
+      {/* Open Source Contributor CTA */}
+      <section
+        aria-labelledby="home-contrib-title"
+        className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
+      >
+        <div className="space-y-1">
+          <h3 id="home-contrib-title" className="text-sm font-bold text-slate-900">
+            Open source. Help us build it better.
+          </h3>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            SignalPulse NG is an independent community project. Explore the code, report issues, or contribute improvements on GitHub.
+          </p>
+        </div>
+
+        <a
+          href="https://github.com/thewebguyy/signalpulse"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-400 transition-colors shrink-0"
+        >
+          <span>GitHub Repository</span>
+          <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
+        </a>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-slate-200 pt-6 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-4">
         <div>
           <span className="font-semibold text-slate-800">SignalPulse NG</span> — Lagos State
         </div>
         <nav aria-label="Footer Navigation" className="flex flex-wrap items-center gap-4">
-          <Link href="/check" className="hover:text-slate-900">Network Check</Link>
-          <Link href="/incidents" className="hover:text-slate-900">My Reports</Link>
+          <Link href="/report" className="hover:text-slate-900 font-medium">Report Problem</Link>
           <Link href="/evidence" className="hover:text-slate-900">Evidence</Link>
-          <Link href="/intelligence" className="hover:text-slate-900">Network Insights</Link>
+          <Link href="/incidents" className="hover:text-slate-900">All Reports</Link>
           <Link href="/guidance" className="hover:text-slate-900">Get Help</Link>
+          <a
+            href="https://github.com/thewebguyy/signalpulse"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-slate-900"
+          >
+            GitHub
+          </a>
         </nav>
       </footer>
     </main>

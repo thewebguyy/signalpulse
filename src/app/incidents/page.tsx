@@ -18,10 +18,12 @@ import {
   TrashIcon,
   CheckCircleIcon,
   AlertCircleIcon,
+  ShareIcon,
 } from "@/components/icons";
 import { CloudBackupCard } from "@/components/cloud-backup-card";
 import { SyncStatusBadge } from "@/components/sync-status-badge";
 import { useSyncEngine, getIncidentSyncStatus, triggerSync } from "@/components/sync-store";
+import { ShareReportCard } from "@/components/share-report-card";
 
 export default function IncidentsPage() {
   const [operator, setOperator] = useState<Operator>("mtn");
@@ -36,6 +38,7 @@ export default function IncidentsPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const [sharingIncident, setSharingIncident] = useState<Incident | null>(null);
   const incidents = useLocalIncidents();
   const storageDiagnostics = useStorageDiagnostics();
   const syncState = useSyncEngine();
@@ -97,6 +100,7 @@ export default function IncidentsPage() {
       setComplaintContactedAt("");
       setEditingId(null);
       setStorageError(null);
+      setSharingIncident(record);
 
       // If cloud backup is enrolled, trigger sync in the background
       if (syncState.backupEnrolled) {
@@ -368,6 +372,16 @@ export default function IncidentsPage() {
         </button>
       </form>
 
+      {/* Share Report Card */}
+      {sharingIncident && (
+        <ShareReportCard
+          operator={sharingIncident.fields.operator}
+          category={sharingIncident.fields.category}
+          areaId={sharingIncident.fields.area_id}
+          onDismiss={() => setSharingIncident(null)}
+        />
+      )}
+
       {/* Saved Records List */}
       <section aria-labelledby="saved-title" className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -427,13 +441,26 @@ export default function IncidentsPage() {
                   )}
 
                   <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs sm:text-sm">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(item)}
-                      className="min-h-[36px] font-semibold text-[#064E3B] hover:underline"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(item)}
+                        className="min-h-[36px] font-semibold text-[#064E3B] hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSharingIncident(item);
+                          window.scrollTo({ top: 400, behavior: "smooth" });
+                        }}
+                        className="inline-flex min-h-[36px] items-center gap-1 font-semibold text-slate-700 hover:text-slate-900"
+                      >
+                        <ShareIcon className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />
+                        <span>Share card</span>
+                      </button>
+                    </div>
 
                     <button
                       type="button"

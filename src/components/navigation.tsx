@@ -21,9 +21,9 @@ interface NavItem {
 
 const NAV_ITEMS: readonly NavItem[] = [
   { href: "/", label: "Home", mobileLabel: "Home", icon: HomeIcon },
-  { href: "/check", label: "Network Check", mobileLabel: "Check", icon: SignalWaveIcon },
-  { href: "/incidents", label: "My Reports", mobileLabel: "Reports", icon: DocketPenIcon },
+  { href: "/report", label: "Report Problem", mobileLabel: "Report", icon: DocketPenIcon },
   { href: "/evidence", label: "Evidence", mobileLabel: "Evidence", icon: PaperclipIcon },
+  { href: "/check", label: "Network Check", mobileLabel: "Check", icon: SignalWaveIcon },
   { href: "/intelligence", label: "Network Insights", mobileLabel: "Insights", icon: ChartBarIcon },
   { href: "/guidance", label: "Get Help", mobileLabel: "Help", icon: OfficialShieldIcon },
 ] as const;
@@ -37,23 +37,26 @@ export function AppNavigation() {
       <aside className="hidden lg:flex w-60 flex-col justify-between shrink-0 border-r border-slate-200 bg-white p-4 min-h-[calc(100vh-57px)]">
         <nav aria-label="Main Navigation" className="space-y-1">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`) ||
+                  (item.href === "/report" && pathname === "/incidents");
             const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors ${
-                  isActive
-                    ? "bg-emerald-50/80 text-[#064E3B] font-semibold"
-                    : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                }`}
+                className={`group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors ${isActive
+                  ? "bg-emerald-50/80 text-[#064E3B] font-semibold"
+                  : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
               >
                 <Icon
-                  className={`h-4 w-4 shrink-0 transition-colors ${
-                    isActive ? "text-[#064E3B]" : "text-slate-400 group-hover:text-slate-600"
-                  }`}
+                  className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[#064E3B]" : "text-slate-400 group-hover:text-slate-600"
+                    }`}
                   aria-hidden="true"
                 />
                 <span>{item.label}</span>
@@ -79,7 +82,12 @@ export function AppNavigation() {
         className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-slate-200 bg-white px-1 lg:hidden pb-[env(safe-area-inset-bottom)]"
       >
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname === item.href ||
+                pathname.startsWith(`${item.href}/`) ||
+                (item.href === "/report" && pathname === "/incidents");
           const Icon = item.icon;
           return (
             <Link

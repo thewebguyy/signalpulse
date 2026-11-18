@@ -15,6 +15,55 @@ const routes = [
     ],
   },
   {
+    path: "/report",
+    expectedStatus: 200,
+    requiredStrings: [
+      "Bad network? Keep a record.",
+      "Report a problem",
+      "MTN",
+      "Airtel",
+      "Glo",
+      "T2mobile",
+      "Open source. Help us build it better.",
+    ],
+  },
+  {
+    path: "/report/mtn",
+    expectedStatus: 200,
+    requiredStrings: [
+      "MTN Nigeria",
+      "Bad network on MTN? Keep a record.",
+      "Step 1 of 4",
+    ],
+  },
+  {
+    path: "/report/airtel",
+    expectedStatus: 200,
+    requiredStrings: [
+      "Airtel Nigeria",
+      "Bad network on Airtel? Keep a record.",
+      "Step 1 of 4",
+    ],
+  },
+  {
+    path: "/report/glo",
+    expectedStatus: 200,
+    requiredStrings: [
+      "Globacom",
+      "Bad network on Globacom? Keep a record.",
+      "Step 1 of 4",
+    ],
+  },
+  {
+    path: "/report/t2mobile",
+    expectedStatus: 200,
+    requiredStrings: [
+      "T2mobile",
+      "Bad network on T2mobile? Keep a record.",
+      "Step 1 of 4",
+    ],
+  },
+  {
     path: "/check",
     expectedStatus: 200,
     requiredStrings: [

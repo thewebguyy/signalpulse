@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { OfficialShieldIcon, LockClosedIcon } from "@/components/icons";
+import { OfficialShieldIcon, LockClosedIcon, GitHubIcon } from "@/components/icons";
 import { useLocalIncidents } from "@/components/local-store";
 
 export function AppHeader() {
@@ -21,8 +21,19 @@ export function AppHeader() {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <a
+            href="https://github.com/thewebguyy/signalpulse"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            title="Open source. Help us build it better."
+          >
+            <GitHubIcon className="h-3.5 w-3.5 text-slate-800" aria-hidden="true" />
+            <span>Open Source</span>
+          </a>
+
           <Link
-            href="/incidents"
+            href="/evidence"
             className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700 border border-slate-200 hover:bg-slate-200/70 transition-colors"
           >
             <LockClosedIcon className="h-3.5 w-3.5 text-[#064E3B]" aria-hidden="true" />

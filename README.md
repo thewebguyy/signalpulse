@@ -1,60 +1,91 @@
 # SignalPulse NG
 
-Local engineering foundation for an independent Nigerian mobile-network experience and consumer-evidence platform. Lagos-first scope: MTN, Airtel, Glo and T2mobile.
+> **"Bad network? Keep a record."**  
+> An independent, operator-neutral connectivity intelligence and consumer-evidence platform for Nigerian mobile subscribers across **MTN, Airtel, Globacom (Glo), and T2mobile**.
 
-**This build uses labelled synthetic fixtures only.** It contains no working sign-in, private save, measurement transport, upload, export renderer or aggregate publisher. The preview page is an integration scaffold, not the product experience.
+**Open source. Help us build it better.**  
+Repository: [https://github.com/thewebguyy/signalpulse](https://github.com/thewebguyy/signalpulse)  
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
 
-## Run locally
+---
 
-Use **Node.js 26.12.1** and **npm 11.20.0**. The version files, package engines and preinstall guard must agree. A Node version manager may read .nvmrc or .node-version; install the pinned runtime through your usual trusted installer. Do not use a different package manager or bypass engine/peer checks.
+## 1. Feature Availability Status
 
-From this repository directory:
+| Capability | Status | Description |
+| :--- | :--- | :--- |
+| **Universal Incident Reporting (`/report`)** | **Available** | Fast, mobile-first reporting for all 4 networks with instant switching. |
+| **Direct Operator Entry Routes** | **Available** | Shareable links: `/report/mtn`, `/report/airtel`, `/report/glo`, `/report/t2mobile`. |
+| **Privacy-Safe Share Card** | **Available** | Client-side PNG card generator for X & WhatsApp with zero server upload. |
+| **Local-First Evidence Vault (`/evidence`)** | **Available** | Private on-device report history, dossier view, and PDF/JSON export. |
+| **NCC Consumer Guidance (`/guidance`)** | **Available** | Official telecom consumer rights, complaint timelines, and escalation channels. |
+| **Connection Speed/Latency Check (`/check`)** | *Planned* | Disclosed upcoming methodology. Live tests remain gated until server calibration. |
+| **Network Intelligence (`/intelligence`)** | *Planned* | Public aggregation gated until privacy threshold and sample size approvals. |
+| **Cloud Vault Backup** | *Disabled* | Retained in codebase, strictly disabled by default (`NEXT_PUBLIC_ENABLE_CLOUD_BACKUP=false`). |
+
+---
+
+## 2. Key Public Routes
+
+- `/` — Homepage with network status overview and direct operator reporting links.
+- `/report` — Universal reporting entry point ("Bad network? Keep a record.").
+- `/report/mtn` — Preselected reporting for MTN Nigeria.
+- `/report/airtel` — Preselected reporting for Airtel Nigeria.
+- `/report/glo` — Preselected reporting for Globacom (Glo).
+- `/report/t2mobile` — Preselected reporting for T2mobile.
+- `/evidence` — Private on-device evidence dossier, printable summary, and JSON export.
+- `/incidents` — Report history management with in-place editing, deleting, and share card generation.
+- `/guidance` — Authoritative NCC consumer guidance and escalation process.
+- `/check` — Transparent disclosure on upcoming browser-based network measurement.
+- `/intelligence` — Area-level network intelligence methodology and privacy disclosure.
+
+---
+
+## 3. Run Locally
+
+### Prerequisites
+- **Node.js:** `26.12.1` (pinned via `.nvmrc` and `.node-version`)
+- **npm:** `11.20.0`
+
+### Setup & Development Server
 
 ```sh
+# Clone repository
+git clone https://github.com/thewebguyy/signalpulse.git
+cd signalpulse
+
+# Install dependencies strictly from lockfile
 npm ci
+
+# Start local Next.js development server (binds to loopback 127.0.0.1:3000)
 npm run dev
 ```
 
-Open http://127.0.0.1:3000. Development and production-start commands bind to loopback. No environment file or service account is required. The optional .env.example documents synthetic mode. Never add Supabase keys or NEXT_PUBLIC_* values: this milestone rejects them. Do not expose this engineering preview as a public service.
+Visit [http://127.0.0.1:3000](http://127.0.0.1:3000). No external services, API keys, or cloud credentials are required for local operation.
 
-To verify and run the optimized local build:
+---
 
-```sh
-npm run check
-npm run start
-```
+## 4. Verification & Quality Commands
 
-Use Ctrl+C to stop. On PowerShell, optionally set `$env:NEXT_TELEMETRY_DISABLED='1'` before running Next commands. CI disables Next telemetry. No remote fonts or analytics are configured.
-
-## Commands
+All verification commands must pass without errors or warnings:
 
 | Command | Purpose |
-| --- | --- |
-| npm ci | Reproduce dependencies from the lockfile; needs registry access on first install |
-| npm run dev | Local Next development server |
-| npm run typecheck | Generate route types and run strict TypeScript |
-| npm run lint | ESLint, TypeScript, Next and React Hooks rules |
-| npm test | Synthetic unit, contract, fixture and boundary tests |
-| npm run check:boundaries | Check import graph and transitive client/server separation |
-| npm run check:ci | Parse and validate the CI definition locally |
-| npm run build | Optimized Next production compilation |
-| npm run check:bundle | Inspect generated browser JS for configured server markers |
-| npm run check | All verification above except dependency installation |
-| npm run start | Serve the already-built application locally |
+| :--- | :--- |
+| `npm run typecheck` | Next route typegen and strict TypeScript checking |
+| `npm run lint` | ESLint rules with `--max-warnings=0` |
+| `npm test` | Vitest unit, contract, fixture, and RLS security test suites |
+| `npm run check:boundaries` | Architectural module boundary isolation validation |
+| `npm run check:ci` | GitHub Actions workflow syntax validation |
+| `npm run build` | Next.js production build compilation |
+| `npm run check:bundle` | Browser bundle inspection for server markers |
+| `npm run check` | Runs all checks above in sequence |
+| `npm run start` | Serve the production build locally |
 
-npm caches inside ignored .npm-cache. If an interrupted installation leaves dependencies incomplete, rerun npm ci; do not hide failures using --force or --legacy-peer-deps. Platform-native Next/Tailwind packages are in the lockfile; optional dependencies must remain enabled. A successful exit alone is insufficient: inspect build output and verify the built page.
+---
 
-## Source map
+## 5. Architectural & Privacy Invariants
 
-- src/app: minimal server-rendered integration shell.
-- src/components/ui: accessible reusable semantic primitives.
-- src/contracts: Zod schemas and inferred DTOs, safe to consume in browser code.
-- src/modules: domain ownership predicate and ports; no database/HTTP implementation.
-- src/config: environment parser and guarded server reader.
-- src/server: composition root, safe error construction and reserved Supabase adapter boundary.
-- src/fixtures: deterministic, synthetic, nonpersistent previews; imported only on the server.
-- tests and scripts: automated checks.
-- docs/architecture, docs/contracts, docs/measurement: preserved CTO001-r1.
-- docs/development: current implementation coverage, decisions and handoff.
+1. **Independent & Operator-Neutral:** SignalPulse does not favor or single out any operator. It treats all four carriers with identical evidential standards.
+2. **Local-First & Private:** Evidence is created and stored in the subscriber's browser via `localStorage`. No private descriptions, customer-care references, or phone numbers leave the device unless explicitly exported by the user.
+3. **No Unsubstantiated Accusations:** SignalPulse is an evidence collection tool, not a regulator or billing auditor. It distinguishes between user assertions (`user_reported`) and technical observations.
 
-Start with [AGENTS.md](AGENTS.md), [foundation record](docs/development/cto002a-foundation.md), [contract coverage](docs/development/contract-coverage.md) and [Antigravity handoff](docs/development/antigravity-handoff.md). No API routes exist; do not point UI fetches at the proposed endpoint inventory yet.
+For full architectural contracts and rules, see [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
