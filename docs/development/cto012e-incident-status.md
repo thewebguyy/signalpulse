@@ -38,6 +38,10 @@ The subscriber trigger and RLS event trigger each have one live registration. Th
 
 The direct RPC still needs request-size/item bounds, replay payload binding and an active-subscriber/deletion fence. A completed mutation ID currently returns a cached result without proving a repeated payload is identical. These are release blockers for externally enabled cloud sync, not reasons to loosen table grants.
 
+## Account deletion fail-closed correction
+
+Source review found that `deleteAccount()` ignored errors from subscriber updates, evidence storage removal, record deletes and session sign-out. The route could therefore return `state: complete` and “purged” while private records remained. The authenticated role also lacks required update/delete grants, and the sequence was not atomic. CTO012-E disables this unsafe sequence after verifying an active session: the route returns the stable `temporarily_unavailable` error (503) and performs no database or storage mutation. A regression test asserts that behavior. **Self-service cloud account deletion is unavailable and is a release blocker.** Restore it only with an owner-fenced, retryable server-side deletion design and real database/storage tests, including partial-failure and backup behavior. The existing route's completion wording must be revised when that workflow is implemented.
+
 ## Next verification gate
 
 After the CTO enables anonymous sign-ins **only on the dedicated test project**, run `scripts/verify-rpc-api.mjs` with the project's publishable key supplied on stdin. Record two distinct real Auth identities, forged owner/deletion attempts, direct REST isolation, successful own sync, replay result and fixture cleanup. Re-run the Advisor and catalog query afterward. Then have the CTO disable anonymous sign-ins again and confirm that setting. Do not enable production cloud backup, merge this PR, or close the incident while the historical commit remains retrievable and authenticated RPC behavior is unproven.
