@@ -14,6 +14,10 @@ import type { Operator, IncidentCategory } from "@/contracts/domain";
 import type { Incident } from "@/contracts/incidents";
 import { AlertCircleIcon, ArrowRightIcon } from "@/components/icons";
 import { ShareReportCard } from "@/components/share-report-card";
+import {
+  toLocalDateTimeInputValue,
+  fromLocalDateTimeInputValue,
+} from "@/lib/datetime";
 
 interface ReportFormProps {
   initialOperator?: Operator;
@@ -34,8 +38,8 @@ export function ReportForm({
   const [areaId, setAreaId] = useState<string>("ikeja");
   const [category, setCategory] = useState<IncidentCategory>("failed_call");
   const [narrative, setNarrative] = useState<string>("");
-  const [occurredAt, setOccurredAt] = useState<string>(
-    new Date().toISOString().slice(0, 16)
+  const [occurredAt, setOccurredAt] = useState<string>(() =>
+    toLocalDateTimeInputValue(new Date())
   );
   const [complaintRef, setComplaintRef] = useState<string>("");
   const [complaintContactedAt, setComplaintContactedAt] = useState<string>("");
@@ -65,7 +69,7 @@ export function ReportForm({
     setStorageError(null);
 
     const now = new Date().toISOString();
-    const formattedOccurred = occurredAt ? new Date(occurredAt).toISOString() : now;
+    const formattedOccurred = fromLocalDateTimeInputValue(occurredAt, now);
 
     const record: Incident = {
       id: crypto.randomUUID(),
@@ -115,7 +119,7 @@ export function ReportForm({
     setComplaintRef("");
     setComplaintContactedAt("");
     setShowOptionalRef(false);
-    setOccurredAt(new Date().toISOString().slice(0, 16));
+    setOccurredAt(toLocalDateTimeInputValue(new Date()));
   };
 
   return (
@@ -316,7 +320,7 @@ export function ReportForm({
           {!storageDiagnostics.isAvailable && (
             <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2">
               <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
-              <span>Private browsing or cookies disabled. You can still generate and download a share card or evidence summary, but local history won&apos;t persist across browser tabs.</span>
+              <span>Browser storage is restricted or disabled. Reports cannot be saved to device history until browser storage is allowed (e.g. disable Private Browsing or allow site data).</span>
             </div>
           )}
 

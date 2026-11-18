@@ -164,6 +164,7 @@ export default function HomePage() {
           <Link href="/evidence" className="hover:text-slate-900">Evidence</Link>
           <Link href="/incidents" className="hover:text-slate-900">All Reports</Link>
           <Link href="/guidance" className="hover:text-slate-900">Get Help</Link>
+          <Link href="/privacy" className="hover:text-slate-900 font-medium">Privacy Notice</Link>
           <a
             href="https://github.com/thewebguyy/signalpulse"
             target="_blank"

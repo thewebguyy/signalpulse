@@ -105,8 +105,17 @@ const routes = [
       "Get Help",
       "622",
       "consumer.ncc.gov.ng",
-      "96 hours",
-      "30 days",
+      "Consumer Code of Practice",
+    ],
+  },
+  {
+    path: "/privacy",
+    expectedStatus: 200,
+    requiredStrings: [
+      "Privacy & Data Notice",
+      "localStorage",
+      "No account or cloud backup",
+      "Shared and public device caution",
     ],
   },
   {

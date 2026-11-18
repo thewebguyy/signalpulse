@@ -7,6 +7,7 @@ import { useLocalIncidents, useStorageDiagnostics } from "@/components/local-sto
 import { INCIDENT_CATEGORIES } from "@/components/constants";
 import type { ExportDocument } from "@/contracts/evidence";
 import { exportDocumentSchema } from "@/contracts/evidence";
+import { formatDisplayDateTimeWAT } from "@/lib/datetime";
 import {
   DownloadIcon,
   ArrowRightIcon,
@@ -187,10 +188,10 @@ export default function EvidencePage() {
         <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs sm:text-sm text-amber-900 space-y-1">
           <p className="font-bold flex items-center gap-1.5 text-amber-950">
             <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0" aria-hidden="true" />
-            <span>Browser storage is turned off</span>
+            <span>Browser storage is restricted or unavailable</span>
           </p>
           <p className="leading-relaxed">
-            Download your JSON file or print your summary now. Once you close this window, these records will disappear from this phone.
+            Saved reports cannot be read or exported until browser storage is permitted in your settings (e.g. disable Private Browsing or allow site data).
           </p>
         </div>
       )}
@@ -287,8 +288,8 @@ export default function EvidencePage() {
                       <span className="font-bold text-sm text-slate-900">
                         <span className="uppercase">{inc.fields.operator}</span> · {catTitle}
                       </span>
-                      <span className="text-xs text-slate-500">
-                        {new Date(inc.fields.occurred_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}
+                      <span className="text-xs text-slate-500 font-medium">
+                        {formatDisplayDateTimeWAT(inc.fields.occurred_at)}
                       </span>
                     </div>
 
@@ -376,8 +377,8 @@ export default function EvidencePage() {
                       <span className="font-bold text-slate-900">
                         <span className="uppercase">{inc.fields.operator}</span> · {catTitle}
                       </span>
-                      <span className="text-xs text-slate-500">
-                        {new Date(inc.fields.occurred_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}
+                      <span className="text-xs text-slate-500 font-medium">
+                        {formatDisplayDateTimeWAT(inc.fields.occurred_at)}
                       </span>
                     </div>
                     <p className="text-slate-700 text-xs sm:text-sm">{inc.fields.narrative}</p>

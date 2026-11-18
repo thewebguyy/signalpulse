@@ -24,14 +24,19 @@ import { CloudBackupCard } from "@/components/cloud-backup-card";
 import { SyncStatusBadge } from "@/components/sync-status-badge";
 import { useSyncEngine, getIncidentSyncStatus, triggerSync } from "@/components/sync-store";
 import { ShareReportCard } from "@/components/share-report-card";
+import {
+  toLocalDateTimeInputValue,
+  fromLocalDateTimeInputValue,
+  formatDisplayDateTimeWAT,
+} from "@/lib/datetime";
 
 export default function IncidentsPage() {
   const [operator, setOperator] = useState<Operator>("mtn");
   const [areaId, setAreaId] = useState<string>("ikeja");
   const [category, setCategory] = useState<IncidentCategory>("failed_call");
   const [narrative, setNarrative] = useState<string>("");
-  const [occurredAt, setOccurredAt] = useState<string>(
-    new Date().toISOString().slice(0, 16)
+  const [occurredAt, setOccurredAt] = useState<string>(() =>
+    toLocalDateTimeInputValue(new Date())
   );
   const [complaintRef, setComplaintRef] = useState<string>("");
   const [complaintContactedAt, setComplaintContactedAt] = useState<string>("");
@@ -70,7 +75,7 @@ export default function IncidentsPage() {
     const targetId = existing?.id ?? crypto.randomUUID();
     const targetRecordId = existing?.client_record_id ?? crypto.randomUUID();
 
-    const formattedOccurred = occurredAt ? new Date(occurredAt).toISOString() : now;
+    const formattedOccurred = fromLocalDateTimeInputValue(occurredAt, now);
 
     const record: Incident = {
       id: targetId,
@@ -133,7 +138,7 @@ export default function IncidentsPage() {
     setAreaId(item.fields.area_id ?? "ikeja");
     setCategory(item.fields.category);
     setNarrative(item.fields.narrative);
-    setOccurredAt(item.fields.occurred_at.slice(0, 16));
+    setOccurredAt(toLocalDateTimeInputValue(item.fields.occurred_at));
     setComplaintRef(item.fields.complaint_reference ?? "");
     setComplaintContactedAt(
       item.fields.complaint_contacted_at ? item.fields.complaint_contacted_at.slice(0, 10) : ""
@@ -186,10 +191,10 @@ export default function IncidentsPage() {
         <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs sm:text-sm text-amber-900 space-y-1">
           <p className="font-bold flex items-center gap-1.5 text-amber-950">
             <AlertCircleIcon className="h-4 w-4 text-amber-700 shrink-0" aria-hidden="true" />
-            <span>Browser storage is turned off</span>
+            <span>Browser storage is restricted or unavailable</span>
           </p>
           <p className="leading-relaxed">
-            You can still fill out reports and export them, but they won&apos;t stay on this phone after you close this tab. To keep your history, turn off Private Browsing or allow site data.
+            Saved reports cannot be accessed or retained until browser storage is permitted in your settings (e.g. disable Private Browsing or allow site data).
           </p>
         </div>
       )}
@@ -425,8 +430,8 @@ export default function IncidentsPage() {
                       </span>
                       <SyncStatusBadge status={syncStatus} onRetry={() => void triggerSync()} />
                     </div>
-                    <span className="text-xs text-slate-500">
-                      {new Date(item.fields.occurred_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos" })}
+                    <span className="text-xs text-slate-500 font-medium">
+                      {formatDisplayDateTimeWAT(item.fields.occurred_at)}
                     </span>
                   </div>
 

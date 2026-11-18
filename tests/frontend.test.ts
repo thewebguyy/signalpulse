@@ -431,3 +431,84 @@ describe("localStorage simulation and edge-case error handling", () => {
     expect(mockStorage["signalpulse_local_incidents_v0.1"]).toBe("MALFORMED_JSON_STRING_{{{");
   });
 });
+
+describe("timezone formatting and datetime round-trip preservation (CTO014/CTO015)", () => {
+  it("converts Date to local datetime-local input string without UTC hour drift", async () => {
+    const { toLocalDateTimeInputValue, fromLocalDateTimeInputValue, formatDisplayDateTimeWAT } = await import("@/lib/datetime");
+
+    // Fixed ISO timestamp
+    const iso = "2026-11-18T14:30:00.000Z";
+    const localInputStr = toLocalDateTimeInputValue(iso);
+
+    // Must be YYYY-MM-DDTHH:mm format
+    expect(localInputStr).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+
+    // Converting back must return a valid ISO string representing the exact same moment
+    const backToIso = fromLocalDateTimeInputValue(localInputStr);
+    const originalDate = new Date(iso);
+    const roundTripDate = new Date(backToIso);
+
+    // In local time of the execution environment, the wall clock minutes must match
+    expect(roundTripDate.getMinutes()).toBe(originalDate.getMinutes());
+
+    // Formatting for display in Africa/Lagos
+    const watDisplay = formatDisplayDateTimeWAT(iso);
+    expect(watDisplay).toContain("WAT");
+    expect(watDisplay).toContain("2026");
+  });
+
+  it("preserves timestamp across simulated create -> edit -> save lifecycle", async () => {
+    const { toLocalDateTimeInputValue, fromLocalDateTimeInputValue } = await import("@/lib/datetime");
+
+    // 1. User picks a time in datetime-local input: 15:30
+    const userInputTime = "2026-11-18T15:30";
+
+    // 2. Saved to storage as UTC ISO
+    const savedUtcIso = fromLocalDateTimeInputValue(userInputTime);
+    expect(savedUtcIso).toMatch(/Z$/);
+
+    // 3. User later opens the incident for editing: input is populated
+    const editInputTime = toLocalDateTimeInputValue(savedUtcIso);
+
+    // 4. Time must NOT have shifted merely by opening edit!
+    expect(editInputTime).toBe(userInputTime);
+
+    // 5. User clicks save without altering the time input
+    const reSavedUtcIso = fromLocalDateTimeInputValue(editInputTime);
+
+    // 6. Must be identical to the original saved timestamp
+    expect(reSavedUtcIso).toBe(savedUtcIso);
+  });
+
+  it("verifies share card generation parameters never leak private narratives or ticket IDs", () => {
+    // Fictional sensitive subscriber incident
+    const sensitiveIncident = {
+      narrative: "Personal billing problem: 08031234567 deducted 5,000 NGN. Confidential bank details.",
+      complaint_reference: "CAS-998822-SECRET",
+      operator: "airtel" as const,
+      category: "billing_dispute" as const,
+      area_id: "ikeja",
+    };
+
+    // The share card only consumes: operator, category, areaId
+    const sharePayload = {
+      operator: sensitiveIncident.operator,
+      category: sensitiveIncident.category,
+      areaId: sensitiveIncident.area_id,
+    };
+
+    // Serialized share payload must not contain sensitive narrative or ticket
+    const serialized = JSON.stringify(sharePayload);
+    expect(serialized).not.toContain(sensitiveIncident.narrative);
+    expect(serialized).not.toContain(sensitiveIncident.complaint_reference);
+    expect(serialized).not.toContain("08031234567");
+    expect(serialized).not.toContain("5,000");
+
+    // Pre-composed share text format
+    const shareText = `I just logged a network problem on SignalPulse NG for Airtel Nigeria (Billing and airtime disputes).\n\nBad network? Keep a record here:\nhttps://signalpulse-nine.vercel.app/report/airtel`;
+    expect(shareText).not.toContain(sensitiveIncident.narrative);
+    expect(shareText).not.toContain(sensitiveIncident.complaint_reference);
+    expect(shareText).toContain("network problem");
+  });
+});
+

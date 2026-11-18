@@ -41,8 +41,8 @@ export function AppNavigation() {
               item.href === "/"
                 ? pathname === "/"
                 : pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`) ||
-                  (item.href === "/report" && pathname === "/incidents");
+                pathname.startsWith(`${item.href}/`) ||
+                (item.href === "/report" && pathname === "/incidents");
             const Icon = item.icon;
             return (
               <Link
@@ -73,6 +73,9 @@ export function AppNavigation() {
           <p className="text-[11px] leading-relaxed text-slate-500">
             Your reports stay on this phone or computer unless you download or print them.
           </p>
+          <Link href="/privacy" className="text-[11px] text-[#064E3B] font-semibold underline block pt-0.5">
+            Privacy &amp; Data Notice →
+          </Link>
         </div>
       </aside>
 
@@ -86,8 +89,8 @@ export function AppNavigation() {
             item.href === "/"
               ? pathname === "/"
               : pathname === item.href ||
-                pathname.startsWith(`${item.href}/`) ||
-                (item.href === "/report" && pathname === "/incidents");
+              pathname.startsWith(`${item.href}/`) ||
+              (item.href === "/report" && pathname === "/incidents");
           const Icon = item.icon;
           return (
             <Link
