@@ -358,50 +358,23 @@ describe("Transactional Sync & Idempotency", () => {
 });
 
 describe("Account Deletion & Evidence Purge Lifecycle", () => {
-  it("purges storage objects and all owned records upon deleteAccount", async () => {
+  it("fails closed without mutating private data while deletion is unverified", async () => {
     const getUser = vi.fn(async () => ({ data: { user: { id: testOwner } }, error: null }));
-    const subscriberUpdate = vi.fn(async () => ({ error: null }));
-    const deleteFn = vi.fn(async () => ({ error: null }));
-    const removeStorage = vi.fn(async () => ({ error: null }));
-    const signOut = vi.fn(async () => ({ error: null }));
-
-    const from = vi.fn((table: string) => {
-      if (table === "subscribers") {
-        return { update: () => ({ eq: subscriberUpdate }) };
-      }
-      if (table === "attachment_metadata") {
-        return {
-          select: () => ({
-            eq: async () => ({
-              data: [{ storage_path: "path/1.png" }, { storage_path: "path/2.pdf" }],
-              error: null,
-            }),
-          }),
-          delete: () => ({ eq: deleteFn }),
-        };
-      }
-      if (["evidence_dossiers", "sync_operations", "consent_records", "incidents"].includes(table)) {
-        return {
-          delete: () => ({ eq: deleteFn }),
-        };
-      }
-      throw new Error(`Unexpected table ${table}`);
-    });
+    const from = vi.fn();
+    const signOut = vi.fn();
+    const storageFrom = vi.fn();
 
     mockClient.mockResolvedValue({
       auth: { getUser, signOut },
       from,
-      storage: {
-        from: () => ({ remove: removeStorage }),
-      },
+      storage: { from: storageFrom },
     } as never);
 
     const authAdapter = new SupabaseAuthAdapter();
-    await authAdapter.deleteAccount();
+    await expect(authAdapter.deleteAccount()).rejects.toThrow("temporarily unavailable");
 
-    expect(subscriberUpdate).toHaveBeenCalledWith("id", testOwner);
-    expect(removeStorage).toHaveBeenCalledWith(["path/1.png", "path/2.pdf"]);
-    expect(deleteFn).toHaveBeenCalled();
-    expect(signOut).toHaveBeenCalled();
+    expect(from).not.toHaveBeenCalled();
+    expect(storageFrom).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
   });
 });

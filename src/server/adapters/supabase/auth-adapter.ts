@@ -110,32 +110,10 @@ export class SupabaseAuthAdapter implements AuthenticationPort {
     if (authError || !user) {
       throw new Error("Active session required to delete account.");
     }
-
-    // 1. Tombstone subscriber: mark status = 'deleting'
-    await supabase.from("subscribers").update({ status: "deleting" }).eq("id", user.id);
-
-    // 2. Fetch and remove all storage objects in evidence-attachments
-    const { data: attachments } = await supabase
-      .from("attachment_metadata")
-      .select("storage_path")
-      .eq("owner_id", user.id);
-
-    if (attachments && attachments.length > 0) {
-      const paths = attachments.map((a) => a.storage_path);
-      await supabase.storage.from("evidence-attachments").remove(paths);
-    }
-
-    // 3. Purge owned database records
-    await supabase.from("attachment_metadata").delete().eq("owner_id", user.id);
-    await supabase.from("evidence_dossiers").delete().eq("owner_id", user.id);
-    await supabase.from("sync_operations").delete().eq("owner_id", user.id);
-    await supabase.from("consent_records").delete().eq("owner_id", user.id);
-    await supabase.from("incidents").delete().eq("owner_id", user.id);
-
-    // 4. Mark subscriber as 'deleted'
-    await supabase.from("subscribers").update({ status: "deleted" }).eq("id", user.id);
-
-    // 5. Revoke session / sign out
-    await supabase.auth.signOut();
+    // The former sequence ignored database/storage errors and returned "complete"
+    // even though authenticated lacks the necessary table privileges. It was also
+    // non-atomic: a partial purge could strand an account in "deleting". Keep the
+    // route unavailable until an owner-fenced, retryable deletion workflow exists.
+    throw new Error("Private account deletion is temporarily unavailable.");
   }
 }
