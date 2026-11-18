@@ -1,4 +1,5 @@
 # CTO012-D Incident Remediation & Hardening Report
+> **CTO012-E correction, 18 November 2026:** This historical report is not an incident-closure record. The removed credential remains retrievable in the old GitHub commit, even though the prior connection test reported it invalid. The live function grants now match the patch, but the Security Advisor retains one intentional authenticated `apply_sync_batch` warning. Authenticated API isolation has not been tested because anonymous sign-ins are disabled on the dedicated test project. See [CTO012-E incident status](cto012e-incident-status.md).
 **SignalPulse NG — P0 Security Incident: Exposed Database Password and Privileged RPC Functions**
 **Date:** 18 November 2026  
 **Status:** CONTAINED & REMEDIATED  
